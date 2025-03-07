@@ -9,7 +9,6 @@ from decomposition_helpers import *
 
 from fitting_helpers_thermal import *
 from fitting_helpers_chemical import *
-from fitting_helpers_thermochemical import *
 
 sys.path.append('./secondary_structure_estimation_files')
 from SelconsFunction import *
@@ -2217,87 +2216,6 @@ class CdExperimentThermalRamp(CdExperimentFittingModel):
 
         return None
 
-
-class CdExperimentTcUnfolding(CdExperimentFittingModel):
-    """
-    Advanced class to analyse chemical and thermal unfolding simultaneously
-    """
-
-    def __init__(self):
-
-        super().__init__()
-
-        self.chem_concentration = None  # 1D numpy array, length 'n'. It could be for example, the concentration of Urea, Guanidim chloride or pH
-        self.chem_concentration_ori = None  # Same as self.chem_concentration, but will stay without modifications
-        self.temperature_ori = None  # Same as self.temperature,        but will stay without modifications
-
-    def tc_baselines(self, model='Monomer',
-                     fitSlopeNativeT=True, fitSlopeUnfoldedT=True,
-                     fitSlopeNativeD=True, fitSlopeUnfoldedD=True):
-
-        '''
-        To treat same wavelength data with different protein concentration differently
-        We need to have already self.signal_useful assigned
-        '''
-
-        if model == 'Monomer':
-
-            # Corner (Dmin,Tmin) to (Dmin,Tmax)
-            selected = self.chem_concentration < np.min(self.chem_concentration) + 0.1
-
-            signal_useful = self.signal_useful[:, selected]
-            x_values = temperature_to_kelvin(self.temperature[selected])
-
-            self.bNs, self.kNsT, self.bUs, self.kUsT = fit_baselines(signal_useful, x_values, 15)
-
-            self.bStart = self.signal_useful[:, np.argmin(x_values)]
-            self.bEnd   = self.signal_useful[:, np.argmax(x_values)]
-
-            # Corner (Dmin,Tmin) to (Dmax,Tmin)
-            selected = self.temperature < np.min(self.temperature) + 0.1
-
-            signal_useful = self.signal_useful[:, selected]
-            x_values = self.chem_concentration[selected]
-
-            _, self.kNsD, _, self.kUsD = fit_baselines(signal_useful, x_values, 2)
-
-        else:
-
-            pass
-
-    def fit_signal(self, fitSlopeNativeT=True, fitSlopeUnfoldedT=True,
-                   fitSlopeNativeD=True, fitSlopeUnfoldedD=True, model='Monomer'):
-
-        self.tc_baselines()
-
-        signal_fx = map_two_state_tc_model_to_signal_fx(model)
-        #fractions_fx = map_two_state_tc_model_to_fractions_fx(model)
-
-        # Initial parameters have to be in order: 
-        # Global M, Global D50
-        # Single intercepts folded, Single intercepts unfolded
-        # Single slopes folded    , Single slopes unfolded
-
-        T50min = np.min(self.temperature) + 7
-        T50max = np.max(self.temperature) - 7
-
-        Tinit = 0.5 * (T50max + T50min)
-
-        # Set initial parameters
-        p0 = np.concatenate(((80, 50, 0, 1, 0.01), self.bNs, self.bUs, self.kNsT, self.kUsT, self.kNsD, self.kUsD))
-
-        low_bound = np.array([10, T50min, 0, 0.01, 0] + [x / 50 if x > 0 else 50 * x for x in p0[5:]])
-        high_bound = np.array([1000, T50max, 10, 20, 5] + [50 * x if x > 0 else x / 50 for x in p0[5:]])
-
-        #p0, low_bound, high_bound = update_params_and_bounds(p0,low_bound,high_bound,fitSlopeNative,fitSlopeUnfolded,5,2,self.n)  
-
-        global_fit_params, cov = fit_tc_unfolding([self.chem_concentration], self.signal_useful.tolist(),
-                                                  [self.temperature], p0, low_bound, high_bound, True, True,
-                                                  True, True, signal_fx, listOfOligomerConc=None)
-
-        return None
-
-
 class CdExperimentCustomAnalysis(CdExperimentFittingModel):
     '''
     Advanced class to analyse the CD data using custom models. 
@@ -2824,31 +2742,3 @@ class CdAnalyzer:
             self.experimentsModif[expName].wavelength = filter_vector_by_values(wl, min_wl, max_wl)
 
         return None
-
-test4 = False
-
-if test4:
-    T = np.arange(20, 90, 2.5)
-    D = np.arange(1, 6, 0.5)
-    T_grid, D_grid = np.meshgrid(T, D)
-
-    T, D = T_grid.flatten(), D_grid.flatten()
-
-    yy = signal_two_state_tc_unfolding_monomer(T, D, 50, 50, 0, 2, 0.01, 10, 5, 0, 0, 0, 0)
-
-    c = CdExperimentTcUnfolding()
-    c.temperature = T
-    c.chem_concentration = D
-    c.signal_useful = np.array([yy]).reshape(1, -1)
-
-    c.fit_signal()
-
-    import matplotlib.pyplot as plt
-
-    plt.scatter(T, y, c=D, cmap='viridis')
-    #plt.plot(T,signal_two_state_tc_unfolding_monomer(T, D,*fit))
-    plt.show()
-
-    #plt.scatter(D,y,c=T, cmap='viridis')
-    #plt.scatter(T,)
-    #plt.show()
