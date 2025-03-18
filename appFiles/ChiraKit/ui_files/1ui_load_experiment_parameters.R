@@ -7,7 +7,7 @@ box(title = "2. Parameters for molar ellipticity / extinction", width = 12, soli
                   tippy::tippy_this(
                     elementId = "info_uu1-2",
                     tooltip = "Select this option if all the CD curves share the same parameters:
-                    Molecular weight, Concentration, Number of amino acids, Path length and Input units. 
+                    Molecular weight, Concentration, Number of chromophore units, Path length and Input units.
                     The Molecular weight, Concentration and Path length are required to 
                     calculate the molar ellipticity/extinction. 
                     The 'number of chromophore units' is useful for polypeptides, 

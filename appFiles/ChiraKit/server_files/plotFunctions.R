@@ -36,7 +36,7 @@ plotCDexperiments <- function(cdAnalyzer,workingUnits,
     i <- i+1
     
     signals     <- signalsAll[[i]]
-    
+
     # Check that 1 ) the signal in the desired unit was computed. 
     # E.g, setting concentration to zero will give NA for the molar ellipticity
     
@@ -60,9 +60,9 @@ plotCDexperiments <- function(cdAnalyzer,workingUnits,
       
       # in place conversion - absorbance to millidegrees
       if (useMilliDeg) signal <- signal * 32980
-      
+
       if (sels[counter]) {
-        
+
         df <- data.frame('wavelength'=wavelength,signal)
         df <- df[order(df$wavelength), ]
         
@@ -230,13 +230,13 @@ plotCDexperimentsHT <- function(cdAnalyzer,
     
     signals     <- signalsAll[[i]]
     wavelength  <- wlsAll[[i]]
-    
+
     for (ii in 1:ncol(signals)) {
       counter <- counter + 1
       signal  <- signals[,ii]
       
       if (length(signal) != length(wavelength)) return(NULL)
-      
+
       df      <- data.frame('wavelength'=wavelength,signal)
       
       # Skip trace if constant value only

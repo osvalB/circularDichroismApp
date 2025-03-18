@@ -70,7 +70,7 @@ def are_all_strings_numeric(lst):
 # Guess if a string contains ',' separated values or ';' separated values
 # Return either ',' or ';'
 def find_delimiter_character(string):
-    comma_count = string.count(",")
+    comma_count     = string.count(",")
     semicolon_count = string.count(";")
 
     if semicolon_count > comma_count:
@@ -105,6 +105,139 @@ def file_is_chirakit_txt_with_header(file):
 
     return False
 
+def file_is_jasco_thermal_ramp(file):
+
+    with open(file, encoding="latin-1") as f:
+
+        ls = f.read().splitlines()
+
+        split_str = find_delimiter_character("".join(ls[:20]))
+
+        condition0 = False
+
+        # Detect if we have a thermal ramp by finding
+        # the presence of many numeric columns
+        for l in ls[20:50]:
+
+            l_split     = l.split(split_str)
+
+            if are_all_strings_numeric(l_split) and len(l_split) > 4:
+                condition0 = True
+                break
+
+        l_split = [l.split(split_str) for l in ls[:20]]
+
+        condition1 = any([x[0].lower() == "origin" and x[1].lower() == "jasco"      for x in l_split])
+        condition2 = any([x[0].lower() == "xunits" and x[1].lower() == "nanometers" for x in l_split])
+
+        if all([condition0, condition1, condition2]):
+            return True
+
+    return False
+
+def read_jasco_thermal_ramp(file):
+
+    """
+    Given a JASCO file with a thermal ramp, this function reads the data
+
+    The data is given in chuncks:
+
+    Channel 1
+	4.94	14.93	25.08	35.02	45.03	55.07	64.99	75.04	85.08	95.03
+    250	-0.310564	-0.112003	0.0199744	-0.217282	-0.238716	-0.173046	0.00129784	-0.394731	-0.687165	-1.40543
+    249	-0.180529	-0.182548	-0.451766	-0.374644	-0.509012	-0.393613	-0.547287	-0.443496	-0.789468	-1.21404
+    248	-0.794611	-0.783142	-0.988879	-0.72469	-0.526052	-0.55823	-0.825566	-0.818856	-0.918358	-1.37724
+    247	-0.80135	-1.0767	-1.08592	-0.72999	-0.707271	-0.911694	-1.05502	-0.946347	-1.16992	-1.61274
+    246	-0.548141	-1.0754	-0.931224	-0.819059	-1.07552	-0.927601	-1.05807	-1.026	-1.49157	-1.90345
+    245	-1.23801	-1.46011	-1.31401	-1.3442	-1.62114	-1.67167	-1.42654	-1.35509	-1.80339	-2.21218
+    244	-1.81371	-2.37453	-2.07321	-2.02878	-2.09052	-2.47924	-2.13117	-1.83642	-2.04468	-3.17608
+    243	-2.26931	-2.29472	-2.46863	-2.77889	-2.73403	-2.97862	-2.28913	-2.31804	-2.58541	-3.30417
+
+    Args:
+
+        file (str): path to the file
+
+    """
+
+    with open(file, encoding="latin-1") as f:
+
+        ls = f.read().splitlines()
+
+        split_str = find_delimiter_character("".join(ls[:20]))
+
+        # Find ydata description
+
+        y_data_init_idx = [
+            i for i, l in enumerate(ls[:20]) if l.split(split_str)[0] == "XUNITS"
+        ][0] + 1
+        y_data_end_idx = [
+            i for i, l in enumerate(ls[:20]) if l.split(split_str)[0] == "FIRSTX"
+        ][0]
+
+        y_data_names = [l.split(split_str)[1] for l in ls[y_data_init_idx:y_data_end_idx]]
+
+        y_data_names_lower = [x.lower() for x in y_data_names]
+
+        # Remove the absorbance data
+        if 'absorbance' in y_data_names_lower[2]:
+            y_data_names = y_data_names[:2]
+
+        # Find the first line with the word 'Channel'
+        channel_idx1 = [i+15 for i, l in enumerate(ls[15:]) if "Channel" in l][0]
+
+        # Try to find the channel_idx2
+        try:
+            # Find the next channel index
+            channel_idx2 = [i+15 for i, l in enumerate(ls[15:]) if "Channel" in l][1]
+            we_have_ht   = True
+
+        except:
+
+            we_have_ht   = False
+            channel_idx2 = len(ls)
+
+        # Find the number of temperature points (Line after channel 1)
+        temperatures = ls[channel_idx1 + 1].split(split_str)
+
+        # Remove empty lines
+        temperatures = [x for x in temperatures if x != '']
+
+        # Convert temperatures to numpy array
+        temperatures = np.array(temperatures).astype(float)
+
+        n_temp_points = len(temperatures)
+
+        # Find the wavelength data, first column
+        wavelength_data = [x.split(split_str)[0] for x in ls[(channel_idx1+2):channel_idx2]]
+
+        # Convert wavelength_data to  numpy array
+        wavelength_data = np.array(wavelength_data).astype(float)
+
+        n_wavelength_points = len(wavelength_data)
+
+        # Retrieve the CD data
+        cd_data = [x.split(split_str)[1:] for x in ls[(channel_idx1+2):channel_idx2]]
+
+        # Convert to dataframe and then to numpy array
+        cd_df = pd.DataFrame(cd_data)
+
+        spectra = np.array(cd_df.iloc[:, :]).astype(float)
+
+        if we_have_ht:
+
+            # Retrieve the HT data
+            ht_data = [x.split(split_str)[1:] for x in ls[(channel_idx2+2):(channel_idx2+2+n_wavelength_points)]]
+
+            # Convert to dataframe and then to numpy array
+            ht_df     = pd.DataFrame(ht_data)
+            signal_ht = np.array(ht_df.iloc[:, :]).astype(float)
+
+        else:
+
+            signal_ht    = np.empty_like(spectra)
+            signal_ht[:] = np.nan
+
+    return wavelength_data, spectra, temperatures, signal_ht
 
 def file_is_jasco_single_sample_csv(file):
     with open(file, encoding="latin-1") as f:
@@ -277,6 +410,10 @@ def detect_file_type(file):
     # Check if the file ends with a pattern '.d' followed by one or more digits (using the file_ends_with_pattern function)
     if file_ends_with_pattern(file):
         return "d0xFile"  # If the pattern is found, the file is of type 'd0x'
+
+    # Should be run before the 'plain_csv' check
+    if file_is_jasco_thermal_ramp(file):
+        return "jasco_thermal_ramp"
 
     if file_is_jasco_single_sample_csv(file):
         return "jasco_simple"
@@ -477,6 +614,32 @@ def extract_d0x_data(file):
         return df
 
 def read_d0x_file_data(file):
+
+    """
+
+    Example of file lines below:
+
+    ;Start wavelength (nm)         330
+    ;End wavelength (nm)           170
+    ;Wavelength step (nm)          1
+    ;Num. of scans / points        1 / 161
+    ;File date                     31-08-2021
+    ;Num. of avg. per point        20/ cRio 100 ms
+    ;Avg time per point            2.51
+    ;Lock-in Time constant         0.1
+    ;Lock-in sensitivity           0.05
+    ;Lock-in Phase                 -135
+    ;Grating / CD slit             LEG / 08.75
+    ;  Comments:
+    ;  Sample0: Water
+    ;  Cell type: AS 121a123
+    ;  330-170nm 1nm 20av 1sc Slit 8.75mm
+    ;Lambda        CD/mdeg         Y_Comp./mdeg    DC_Bias         Servo_Volts     Z_Motor         Beam_current    temperature     GC_Pres         Time            UBX_x           UBX_y
+    330.000        1.4818          0.0095          6.82440         4.37090         0.3505          180.3981        25.00           0.000           14:31:20        -0.001433        0.000933
+    329.000        1.0437          0.0095          6.82440         4.36770         0.2660          180.3248        25.00           0.000           14:31:22        -0.001542        0.000833
+
+    """
+
     df = extract_d0x_data(file)
 
     # select the wavelength (1st column) and spectral (2nd and 3rd columns) data
