@@ -39,6 +39,7 @@ function(input, output, session) {
   source(paste0(base_dir,"reactives/peptide_helix_content_reactives.R"  ), local = T)
   source(paste0(base_dir,"reactives/sesca_reactives.R"                  ), local = T)
   source(paste0(base_dir,"reactives/download_reactives.R"               ), local = T)
-  
+  source(paste0(base_dir,"reactives/epsilon_calculator_reactives.R"     ), local = T)
+
 }
 

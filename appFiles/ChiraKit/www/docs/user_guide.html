@@ -215,10 +215,19 @@ $$
   </ul>  
   
   <br>  
-  
-<p class="vf-intro__text">The CD signal can be further normalised by the number of chromophore units. This is especially useful for comparing peptides or proteins of different lengths. For measurements in the far-UV region (185-240 nm), the number of peptide bonds is used because the amide bond is the main chromophore of interest. In the near-UV region (> 250 nm), where side chains and prosthetic groups contribute to the CD signal, the choice of normalisation units should be different and using the number of peptide bonds would be inappropriate (Kahn, Peter C. "[16] The interpretation of near-ultraviolet circular dichroism." Methods in Enzymology, vol. 61, Academic Press, 1979).
 
-<p class="vf-intro__text">A summary table of the different units is presented below.
+<p class="vf-intro__text">
+    The CD signal can be further normalised by the number of chromophore units.
+    This is especially useful for comparing peptides or proteins of different lengths.
+    For measurements in the far-UV region (185-240 nm), the number of peptide bonds is used because the amide bond is
+    the main chromophore of interest. In the near-UV region (> 250 nm), where side chains and prosthetic groups contribute
+    to the CD signal, the choice of normalisation units should be different and using the number of peptide bonds
+    would be inappropriate (Kahn, Peter C. "[16] The interpretation of near-ultraviolet circular dichroism."
+    Methods in Enzymology, vol. 61, Academic Press, 1979).
+</p>
+
+<p class="vf-intro__text">
+    A summary table of the different units is presented below.
 </p>
    
    <br>
@@ -296,6 +305,53 @@ $$
    
 </div>
 
+<div class="vf-section-header"><a class="vf-section-header__heading vf-section-header__heading--is-link" href="JavaScript:Void(0);"
+                                  id="section-link-proteinConcentration" onclick="myFunction('proteinConcentration')">Protein concentration<svg aria-hidden="true" class="vf-section-header__icon | vf-icon vf-icon-arrow--inline-end" width="1em" height="1em" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 12c0 6.627 5.373 12 12 12s12-5.373 12-12S18.627 0 12 0C5.376.008.008 5.376 0 12zm13.707-5.209l4.5 4.5a1 1 0 010 1.414l-4.5 4.5a1 1 0 01-1.414-1.414l2.366-2.367a.25.25 0 00-.177-.424H6a1 1 0 010-2h8.482a.25.25 0 00.177-.427l-2.366-2.368a1 1 0 011.414-1.414z" fill="" fill-rule="nonzero"></path>
+    </svg></a></div>
+
+<div id="proteinConcentration" style="display:none">
+
+<p class="vf-intro__text">
+    There are several ways of measuring the protein concentration, such as the Bradford, Lowry, BCA, and UV absorbance methods
+    <a href="https://doi.org/10.1002/cpph.3" target="_blank" rel="noopener noreferrer">
+        (Bradley J.S.C. Olson, 2016)</a>.
+    Normally, the UV absorbance at 280 nm is used. However, this method produces inaccurate results for proteins with
+    few aromatic residues or containing UV-absorbing cofactors such as iron-sulphur clusters or nucleotide factors.
+    In these cases, the absorbance at 205 or 214 nm, which is largely due to peptide bonds present,
+    can be used, as long as the buffer does not absorb light significantly at these wavelengths
+    <a href="https://link.springer.com/protocol/10.1007/978-1-0716-1197-5_1#ref-CR1" target="_blank" rel="noopener noreferrer">
+        (Raynal, B<i> et al.</i>, 2021)</a>.
+    After selecting the wavelength (280, 214, or 205 nm) the Beer–Lambert law can be used to estimate
+    the sample concentration:
+</p>
+
+$$
+\large{
+    A_i = \varepsilon_{i} \cdot c \cdot d
+   }
+$$
+
+<p class="vf-intro__text">
+    where \( A_i \) is the absorption at the selected wavelength,
+    \( \varepsilon_{i} \) is the molar extinction coefficient  (\( M^{-1} cm^{-1} \))  at the selected wavelength,
+    \( c \) is the concentration (M), and \( d \) is the cuvette path length (cm).
+     \( \varepsilon_{280} \), \( \varepsilon_{205} \) and \( \varepsilon_{214} \) can be calculated
+    with this <a href="#" class="button" id="epsilon_calculator">
+      Tool <span class="icon icon-functional" data-icon="k"></span>
+    </a>
+</p>
+
+ <p class="vf-intro__text">
+     When analysing CD data, please consider that the inaccurate determination of the protein concentration has a great effect
+     on the secondary structure estimation algorithms, specially for the SELCON method that does not fit a
+     scaling factor (See Section 'Protein secondary structure').
+</p>
+
+   <br>
+
+</div>
+
 <div class="vf-section-header"><a class="vf-section-header__heading vf-section-header__heading--is-link" href="JavaScript:Void(0);" id="section-link" onclick="myFunction('htCurves')">High Tension (HT) Voltage
 <svg aria-hidden="true" class="vf-section-header__icon | vf-icon vf-icon-arrow--inline-end" width="1em" height="1em" xmlns="http://www.w3.org/2000/svg">
       <path d="M0 12c0 6.627 5.373 12 12 12s12-5.373 12-12S18.627 0 12 0C5.376.008.008 5.376 0 12zm13.707-5.209l4.5 4.5a1 1 0 010 1.414l-4.5 4.5a1 1 0 01-1.414-1.414l2.366-2.367a.25.25 0 00-.177-.424H6a1 1 0 010-2h8.482a.25.25 0 00.177-.427l-2.366-2.368a1 1 0 011.414-1.414z" fill="" fill-rule="nonzero"></path>
@@ -322,9 +378,10 @@ $$
      <li class="vf-list__item "> Subtract one spectrum from another (e.g., for baseline correction) </li>
      <li class="vf-list__item "> Add two spectra together</li>
      <li class="vf-list__item "> Smooth selected spectra using a Savitzky-Golay filter (window size of 3, 6, 8 or 10 nm). For example, if the wavelength was measured every 1 nm, a window size of 6 nm equals a 7 point filter. If the wavelength was measured every 0.5 nm, a window size of 6 nm equals equals a 14 point filter.</li>
-     <li class="vf-list__item "> Average selected spectra </li>
-     <li class="vf-list__item "> Average selected spectra in batch mode. For example, you can average every five curves (N = 5).</li>
-     <li class="vf-list__item "> Zero selected spectra: subtract the mean signal within a selected wavelength range interval. The width of the interval is given by the User and the maximum wavelength of the zeroing range is defined by the 'Wavelength range' Slider ("1. Input" Box). After this process the slider can be changed to show all data again.</li>
+     <li class="vf-list__item "> Average the selected spectra </li>
+     <li class="vf-list__item "> Average the selected spectra in batch mode. For example, you can average every five curves (N = 5).</li>
+     <li class="vf-list__item "> Scale the selected spectra by multiplying them by a factor between 0.5 and 2</li>
+     <li class="vf-list__item "> Zero the selected spectra: subtract the mean signal within a selected wavelength range interval. The width of the interval is given by the User and the maximum wavelength of the zeroing range is defined by the 'Wavelength range' Slider ("1. Input" Box). After this process the slider can be changed to show all data again.</li>
      <li class="vf-list__item "> Consecutive spectra subtraction:  Subtract the second spectrum from the first. Subtract the fourth spectrum from the third. Etc.</li>
      <li class="vf-list__item "> Split-pair subtraction:  Split the spectra into two halves: the first half and the second half.
          Subtract each spectrum in the second half from the corresponding spectrum in the first half.</li>
@@ -344,7 +401,7 @@ $$
 </p>
 
   <p class="vf-intro__text">The following behaviour is applied for the high tension voltage curves.
-  For the subtract, addition, smooth or zero operations, the new generated spectra will have the same high tension voltage curve as the spectra selected in the box 'Spectrum / Spectra 1'. For the (batch) average operation, the high tension voltage curves will be averaged.
+  For the subtract, addition, smooth, zero or scale operations, the new generated spectra will have the same high tension voltage curve as the spectra selected in the box 'Spectrum / Spectra 1'. For the (batch) average operation, the high tension voltage curves will be averaged.
   </p>
 
 </div>
@@ -834,7 +891,8 @@ $$
 </p>
 
 <p class="vf-intro__text">
-    If you use this model you must cite both ChiraKit and the original manuscript <a href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.3c07511#_i30" target="_blank" rel="noopener noreferrer">(Zavrtanik, Uroš<i> et al.</i>, 2024)</a>.
+    If you use this model you must cite both ChiraKit and the original manuscript
+    <a href="https://pubs.acs.org/doi/full/10.1021/acs.jpcb.3c07511#_i30" target="_blank" rel="noopener noreferrer">(Zavrtanik, Uroš<i> et al.</i>, 2024)</a>.
 </p>
 
 </div>
@@ -1092,7 +1150,8 @@ $$
 where \( T \) is the temperature in Kelvin units and \( R_{gas} \) the gas constant. 
 </p>  
   
-<p class="vf-intro__text"> For monomers, \( f_N \), \( f_I \) and \( f_U \) can be calculated solely from \( K_1(D) \) and \( K_2(D) \), while for oligomers, the protein concentration is also required.   
+<p class="vf-intro__text">
+    For monomers, \( f_N \), \( f_I \) and \( f_U \) can be calculated solely from \( K_1(D) \) and \( K_2(D) \), while for oligomers, the protein concentration is also required.
 </p>
 
 <p class="vf-intro__text"> The parameters \( D50_x \) and \( M_x \) are fitted globally. The baseline terms \( b_N \), \( b_I \) and \( b_U \) are fitted locally. The slope terms \( k_N \) and \( k_U \) are fitted locally, or set to zero. 

@@ -63,13 +63,13 @@ class CdExperimentGeneral:
     def __init__(self):
 
         self.wavelength = None  # 1D numpy array
-        self.signalInput = None  # 2D dataframe with one column per measurement
-        self.signalAbs = None  # 2D dataframe with one column per measurement, absorbance units
-        self.signalDesiredUnit = None  # 2D dataframe with one column per measurement, signal in user selected units
+        self.signalInput = None  # 2D matrix with one column per measurement
+        self.signalAbs = None  # 2D matrix with one column per measurement, absorbance units
+        self.signalDesiredUnit = None  # 2D matrix with one column per measurement, signal in user selected units
         self.internalID = None  # Internal ID based on the experiment name and spectra names
         self.spectraNames = None  # Names of the measured spectra, e.g.,
 
-        self.signalHT = None  # 2D dataframe with one column per measurement, unknown units
+        self.signalHT = None  # 2D matrix with one column per measurement, unknown units
 
         # Metadata of the experiment, e.g, concentration, path length ... 
         self.metadata = None

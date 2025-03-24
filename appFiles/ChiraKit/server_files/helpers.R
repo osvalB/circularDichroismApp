@@ -457,7 +457,7 @@ generateDTtableProcessing <- function(cdAnalyzer,
     possibleSpectra2choices <- c(3,5,10,20,40)
   } else if (operation == 'Smooth') {
     possibleSpectra2choices <- c(3,6,8,10)
-  } else {
+  }  else {
     possibleSpectra2choices <- c(internal.IDs)
   }
   
@@ -467,12 +467,22 @@ generateDTtableProcessing <- function(cdAnalyzer,
   } else {
     second_spectrum <- possibleSpectra2choices
   }
-  
-  possibleSpectra2  <- as.character(selectInput('inputSpectra2', label=NULL, 
+
+  if (operation != 'Scale') {
+
+    possibleSpectra2  <- as.character(selectInput('inputSpectra2', label=NULL,
                                                 choices = second_spectrum,
                                                 selectize=FALSE))
-  
-  operationsChoices <- c('Subtract','Sum','Smooth','Average','Zero')
+
+  } else {
+
+    possibleSpectra2  <- as.character(
+        numericInput('inputSpectra2',
+        label=NULL,value = 1, min = 0.5, max = 2, step = 0.01))
+
+  }
+
+  operationsChoices <- c('Subtract','Sum','Smooth','Average','Zero','Scale')
   
   # Add batch average if we have more than 1 curve
   if (length(internal.IDs) > 2) {
@@ -506,6 +516,8 @@ generateDTtableProcessing <- function(cdAnalyzer,
     third_col_name <- 'Spectrum 2 (for + or -)'
   } else if (operation  == 'Smooth') {
     third_col_name <- 'Smoothing window size (nm)'
+  } else if (operation  == 'Scale') {
+    third_col_name <- 'Scaling factor'
   } else {
     third_col_name <- 'Not required for this operation'
   }

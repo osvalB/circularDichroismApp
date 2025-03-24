@@ -66,13 +66,15 @@ def convert2absorbance(value,unitsBegin,concentration=1,pathLength=1,molecularWe
 
 		except:
 
-			return np.nan
+			# return a numpy array full of NaNs with the same shape as value
+			return np.full_like(value, np.nan, dtype=np.float64)
 
 	if unitsBegin == "absorbance":
 		return value
 
 	if 0 in [concentration,pathLength,molecularWeight] and unitsBegin in ['molarExtinction','molarEllipticity']:
-		return np.nan
+		# return a numpy array full of NaNs with the same shape as value
+		return np.full_like(value, np.nan, dtype=np.float64)
 
 	functions = {
 	'milliabsorbance'  : milliabsorbance2absorbance,
@@ -93,11 +95,12 @@ def absorbance2desiredUnits(value,unitsEnd,concentration=1,pathLength=1,molecula
 			unitsEnd        = unitsEnd.replace("meanUnitM", "m")
 
 		except:
-
-			return np.nan
+			# return a numpy array full of NaNs with the same shape as value
+			return np.full_like(value, np.nan, dtype=np.float64)
 
 	if 0 in [concentration,pathLength,molecularWeight] and unitsEnd in ['molarExtinction','molarEllipticity']:
-		return np.nan
+		# return a numpy array full of NaNs with the same shape as value
+		return np.full_like(value, np.nan, dtype=np.float64)
  
 	if unitsEnd == "absorbance":
 		return value

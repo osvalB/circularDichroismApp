@@ -43,6 +43,13 @@ shinyUI(dashboardPage(
     includeHTML("www/banner.html"),
     includeScript("www/banner.js"),
 
+      # JavaScript to send event to Shiny and trigger the epsilon_calculator
+      tags$script(HTML("
+        $(document).on('click', '#epsilon_calculator', function() {
+          Shiny.setInputValue('epsilon_calculator_click', Math.random());  // Send a random value to trigger the event
+        });
+      ")),
+
     tabItems(
       tabItem(
         tabName = "menu_input",

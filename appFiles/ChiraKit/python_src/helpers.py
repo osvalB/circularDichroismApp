@@ -296,3 +296,7 @@ def check_good_parameters_estimation(params,low_bound,high_bound,params_name):
 
 
     return all(lie_in_correct_interval)
+
+def calculate_epsilon_205nm(sequence):
+
+    return None
