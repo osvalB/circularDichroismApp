@@ -294,9 +294,64 @@ def check_good_parameters_estimation(params,low_bound,high_bound,params_name):
         ki             = params[position_of_ki]
         lie_in_correct_interval = np.append(lie_in_correct_interval, np.array([ki >= 0.001 and ki < 1000]))
 
-
     return all(lie_in_correct_interval)
 
-def calculate_epsilon_205nm(sequence):
+def calculate_epsilon(sequence,disulfide_bonds=0):
+    """
+    Given a protein sequence with natural aminoacids
+    compute the molar extinction coefficient at 205 nm, 214 nm and 280 nm
+    """
 
-    return None
+    # Count the number of times we have each aminoacid in the sequence string
+    n_A = sequence.count('A')
+    n_C = sequence.count('C')
+    n_D = sequence.count('D')
+    n_E = sequence.count('E')
+    n_F = sequence.count('F')
+    n_G = sequence.count('G')
+    n_H = sequence.count('H')
+    n_I = sequence.count('I')
+    n_K = sequence.count('K')
+    n_L = sequence.count('L')
+    n_M = sequence.count('M')
+    n_N = sequence.count('N')
+    n_P = sequence.count('P')
+    n_Q = sequence.count('Q')
+    n_R = sequence.count('R')
+    n_S = sequence.count('S')
+    n_T = sequence.count('T')
+    n_V = sequence.count('V')
+    n_W = sequence.count('W')
+    n_Y = sequence.count('Y')
+
+    # Method 280 nm
+    epsilon_280 = 1490 * n_Y + 5500 * n_W + disulfide_bonds * 125
+
+    # Method 214 nm - https://pubs.acs.org/doi/epdf/10.1021/jf070337l?ref=article_openPDF
+
+    # Check if we have a proline at the N-terminus
+    proline_N = sequence[0] == 'P'
+
+    if proline_N:
+        n_P -= 1
+        proline_N_contribution = 30
+    else:
+        proline_N_contribution = 0
+
+    epsilon_214 = (
+            proline_N_contribution + n_A * 32 + n_C * 225 +
+            n_D * 58 + n_E * 78 + n_F * 5200 + n_G * 21 + n_H * 5125 +
+            n_I * 45 + n_K * 41 + n_L * 45 + n_M * 980 + n_N * 136 +
+            n_P * 2675 + n_Q * 142 + n_R * 102 + n_S * 34 + n_T * 41 +
+            n_V * 43 + n_W * 29050 + n_Y * 5375 + (len(sequence)-1)*923
+                   )
+
+    # Method 205 nm - https://pubmed.ncbi.nlm.nih.gov/23526461/
+
+    epsilon_205 = (
+        n_W * 20400 + n_F * 8600 + n_Y * 6080 + n_H * 5200 + n_M * 1830 +
+        n_R * 1350 + n_C * 690 + n_N * 400 + n_Q * 400 +
+        (len(sequence)-1) * 2780 + 820 * disulfide_bonds
+    )
+
+    return epsilon_280, epsilon_214, epsilon_205
