@@ -17,7 +17,6 @@ observeEvent(input$epsilon_calculator_click, {
 
 observeEvent(input$submitCalcEpsilon,{
 
-
   removeModal()
   sequence <- input$proteinSequence
   print(sequence)
