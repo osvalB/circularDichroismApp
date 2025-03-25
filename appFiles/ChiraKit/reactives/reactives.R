@@ -1,291 +1,132 @@
-append_record_to_logbook <- function(record_str,include_time=FALSE) {
-  
-  if (include_time) {
-    record_str <- paste0(as.character(format(Sys.time(),usetz = TRUE)),' ',record_str)
-  }
-  # Append '' to print in the output a new empty line after the record
-  record_str <- c(record_str,'')
-    
-  reactives$logbook <- append(reactives$logbook, record_str)
-  
-  return(NULL) 
-}
-
-updateSESCA_ref <- function(legendDf) {
-
-  spectraLegends        <- c('None',legendDf$Internal.ID)
-  names(spectraLegends) <- c('None',legendDf$Legend)
-
-  updateSelectInput(session,"sescaReference",NULL,choices=spectraLegends)
-  updateSelectInput(session,"sescaReferenceEstimation",NULL,choices=spectraLegends[-1])
-}
-
-updateProcessingTable <- function(
-    operation = 'Sum',operationUnits='millidegrees') {
-  
-  # Generate table to preprocess spectra (subtract, sum, smooth, average, etc.)
-  df <- generateDTtableProcessing(cdAnalyzer,operation,operationUnits)
-  
-  # To allow the creation of selectInput inside DT table
-  session$sendCustomMessage('unbind-DT', 'proccesingInfo')
-  output$proccesingInfo <- renderDTtable(df)
-  
-}
-
-updateCDFilesInfoTable <- function() {
-  
-  df <- generateDTtable(cdAnalyzer)
-  
-  # To allow the creation of selectInput inside DT table
-  session$sendCustomMessage('unbind-DT', 'cdFilesInfo')
-  output$cdFilesInfo <- renderDTtable(df,TRUE)
-  
-  Sys.sleep(0.5)
-  observeEvent(lapply(1:length(cdAnalyzer$experimentNames), function(i) input[[paste0("inputUnits", i)]] ), {
-    
-    reactives$data_loaded <- NULL
-    convertExperimentToWorkingUnits()
-    reactives$data_loaded <- TRUE
-    
-  },ignoreInit = T,ignoreNULL = T)
-  
-}
-
-updateMaxVoltageValue <- function() {
-  allVoltageData <- unlist(cdAnalyzer$get_experiment_properties('signalHT'))
-  maxVoltage     <- max(c(allVoltageData,0),na.rm = T)
-  
-  reactives$showVoltageThreshold <- maxVoltage > 0
-  
-  updateNumericInput(session,'maxHTvalue',NULL,value = maxVoltage)
-}
-
-output$showVoltageThreshold   <- reactive( { return( reactives$showVoltageThreshold  ) } )
-outputOptions(output, "showVoltageThreshold" , suspendWhenHidden = FALSE)
-
-load_one_experiment <- function(cd_data_file,name,inputUnits = 'millidegrees') {
-  
-  nameOri <- name
-  name    <- remove_file_extension(name)
-
-  # Remove ':' which will break our app
-  name <- gsub(':','',name)
-  
-  withBusyIndicatorServer("Go",{
-  
-    exps      <- cdAnalyzer$experimentNames
-    
-    if (name %in% exps) {
-      shinyalert(text = paste("<b>File name is already being used.</b>"),
-                 type = "warning",closeOnEsc = T,closeOnClickOutside = T,
-                 html=T)
-      return(NULL)
-    } else { # Load last loaded file
-      
-      load <- cdAnalyzer$load_experiment(cd_data_file,name)
-      
-      # Catch exception when file has wrong format/data
-      if (!load[[1]]) {
-
-        popUpWarning(paste0("<b>",load[[2]],"</b>"))
-        return(NULL)
-      }
-      
-      l1        <- list()
-      
-      # Case 1 - Override default units
-      if (inputUnits != 'millidegrees') {
-        l1[[1]]   <- inputUnits
-        # Case 2 - Use experiments units
-      } else {
-        l1[[1]]   <- cdAnalyzer$experimentsOri[[name]]$units
-      }
-      
-      names(l1) <- c(name)
-      
-      # Convert to absorbance
-      cdAnalyzer$experiments_to_absorbance_units(l1)
-      
-      # Convert to desired units
-      l1[[1]]   <- input$workingUnits
-      cdAnalyzer$experiments_absorbance_units_to_other_units(l1)
-      
-      metadata_info     <- cdAnalyzer$experimentsOri[[name]]$metadata
-      
-      tabP <- tabPanel(name,value=name,fluidRow(
-        column(12,tableOutput(paste0('metadata_',name)))))
-      appendTab("metadata",tabP,select=TRUE)
-      
-      if (length(metadata_info) > 0) {
-
-        metadataFeature <- (names(metadata_info))
-        metadataValue   <- unlist(metadata_info)
-        
-        metadata_df <- data.frame(metadataFeature,metadataValue)
-        colnames(metadata_df) <- c('Metadata feature (read from file)','Value') 
-        
-      } else {
-        metadata_df <- data.frame('Metadata'='No information available')
-      }
-      
-      output[[paste0('metadata_',name)]] <- renderTable({metadata_df})
-      Sys.sleep(0.02)
-      updateProcessingTable()
-      
-      Sys.sleep(0.02)
-      
-    }
-    
-  })
-  
-  append_record_to_logbook(paste0('File loaded: ',nameOri,
-                                  ' | Input units: ',inputUnits),
-                           include_time = TRUE)
-  
-}
-
-observeEvent(input[["inputUnitsAll"]],{
-  req(reactives$data_loaded)
-  
-  reactives$data_loaded <- NULL
-  convertExperimentToWorkingUnits()
-  reactives$data_loaded <- TRUE
-},ignoreInit = T,ignoreNULL = T)
-
-
 # Generate and render
 # 1) The Input parameters Table,
 # 2) The legends Table
 # 3) The wavelength range slider
 renderInputData <- function() {
   
-  output$cdFilesInfo    <- NULL
-  
-  wls  <- cdAnalyzer$get_experiment_properties('wavelength')
-  
-  if (length(wls) == 0) return(NULL)
-  
-  Sys.sleep(length(wls)*0.015)
-  
-  minV <- min(unlist(wls))
-  maxV <- max(unlist(wls))
-  
-  updateSliderInput(session,inputId="wavelengthRange",label = NULL,min=minV,max=maxV,value = c(minV,maxV))
-  updateSelectInput(session,"experiment2delete",choices     = c("ALL",cdAnalyzer$experimentNames))
-  updateSelectInput(session,"selected_cd_exp",choices       = cdAnalyzer$experimentNames)
-  
-  updateCDFilesInfoTable()
+    output$cdFilesInfo    <- NULL
 
-  cdAnalyzer$sharedParameters <- FALSE
-  updateCheckboxInput(session,'sharedExperimentParameters',label = NULL,FALSE)
-  
-  legendDf              <- getPlottingDF(cdAnalyzer)
-  
-  output$legendInfo     <- helperRenderRHandsontable(legendDf)
-  updateSESCA_ref(legendDf)
+    wls  <- cdAnalyzer$get_experiment_properties('wavelength')
 
-  Sys.sleep(length(wls)*0.015)
+    if (length(wls) == 0) return(NULL)
+
+    Sys.sleep(length(wls)*0.015)
+
+    minV <- min(unlist(wls))
+    maxV <- max(unlist(wls))
+
+    updateSliderInput(session,inputId="wavelengthRange",label = NULL,min=minV,max=maxV,value = c(minV,maxV))
+    updateSelectInput(session,"experiment2delete",choices     = c("ALL",cdAnalyzer$experimentNames))
+    updateSelectInput(session,"selected_cd_exp",choices       = cdAnalyzer$experimentNames)
+
+    updateCDFilesInfoTable()
+
+    cdAnalyzer$sharedParameters <- FALSE
+    updateCheckboxInput(session,'sharedExperimentParameters',label = NULL,FALSE)
+
+    legendDf              <- getPlottingDF(cdAnalyzer)
+
+    output$legendInfo     <- helperRenderRHandsontable(legendDf)
+    updateSESCA_ref(legendDf)
+
+    Sys.sleep(length(wls)*0.015)
   
 }
 
 observeEvent(input$cdFiles,{
   
-  req(input$cdFiles)
+    req(input$cdFiles)
 
-  reactives$data_loaded <- NULL
-  output$legendInfo     <- NULL
-  
-  cd_data_files   <- input$cdFiles$datapath
-  names           <- input$cdFiles[[1]]
-  
-  sorted_indices  <- order(names)
-  
-  cd_data_files   <- cd_data_files[sorted_indices]
-  names           <- names[sorted_indices]
-  
-  i <- 0
-  
-  # iterate over the files
-  for (name in names) {
-    i              <- i + 1
-    cd_data_file   <- cd_data_files[i]
-    
-    fileExtension <- getFileNameExtension(name)
-    
-    if (fileExtension == 'zip') {
-      
-      # Create a temporary directory to unzip files
-      unzipDir <- tempfile()
-      dir.create(unzipDir)
-      
-      unzip(cd_data_file,exdir = unzipDir)
-      
-      # List all possible types of files
-      file_list <- list.files(unzipDir, 
+    reactives$data_loaded <- NULL
+    output$legendInfo     <- NULL
+
+    cd_data_files   <- input$cdFiles$datapath
+    names           <- input$cdFiles[[1]]
+
+    sorted_indices  <- order(names)
+
+    cd_data_files   <- cd_data_files[sorted_indices]
+    names           <- names[sorted_indices]
+
+    i <- 0
+
+    # iterate over the files
+    for (name in names) {
+
+        i              <- i + 1
+        cd_data_file   <- cd_data_files[i]
+
+        fileExtension <- getFileNameExtension(name)
+
+        if (fileExtension == 'zip') {
+
+            # Create a temporary directory to unzip files
+            unzipDir <- tempfile()
+            dir.create(unzipDir)
+
+            unzip(cd_data_file,exdir = unzipDir)
+
+            # List all possible types of files
+            file_list <- list.files(unzipDir,
                               pattern = "\\.xlsx$|\\.gen$|\\.dat$|\\.txt$|\\.csv$|d\\d+$",
                               ignore.case = TRUE,
                               recursive = TRUE,
                               full.names = TRUE)
-      
-      for (file in file_list) {
-      
-        load_one_experiment(file,basename(file))
-        
-      }
 
-    } else {
-      
-      load_one_experiment(cd_data_file,name)
-      
+            for (file in file_list) load_one_experiment(file,basename(file))
+
+        } else {
+
+            load_one_experiment(cd_data_file,name)
+        }
     }
-  }
 
-  Sys.sleep(0.5)
+    Sys.sleep(0.5)
 
-  # Check that we have at least one experiment
-  if (length(cdAnalyzer$experimentNames) > 0) {
+    # Check that we have at least one experiment
+    if (length(cdAnalyzer$experimentNames) > 0) {
 
-    reactives$urea_example_data_loaded <- FALSE
+        reactives$urea_example_data_loaded <- FALSE
 
-      # Copy experiments to allow modifying the wavelength range
-    cdAnalyzer$initialize_experiment_modif()
-    updateMaxVoltageValue()
-    renderInputData()
+        # Copy experiments to allow modifying the wavelength range
+        cdAnalyzer$initialize_experiment_modif()
+        updateMaxVoltageValue()
+        renderInputData()
 
-    reactives$show_example_data <- FALSE
-
-    reactives$data_loaded <- TRUE
-  }
+        reactives$show_example_data <- FALSE
+        reactives$data_loaded       <- TRUE
+    }
 
 },priority = 10)
 
 # Modal dialog to ask for the input and desired units
 observeEvent(input$automaticProcess,{
   
-  req(input$cdFilesSample)
-  req(input$cdFilesBaseline)
+    req(input$cdFilesSample)
+    req(input$cdFilesBaseline)
 
-  reactives$urea_example_data_loaded <- FALSE
+    reactives$urea_example_data_loaded <- FALSE
 
-  showModal(modalDialog(
-    
-    tags$h3('Please enter the units of the CD data files,
-     the desired units of the final processed spectrum, 
-    and if the final spectrum should be zeroed:'),
-    selectInput("inputUnitsAutomatic"  , 'CD input files unit',
-                global_cd_units_choice_short),
-    selectInput("workingUnitsAutomatic", 'Desired units of the final spectrum',
-                global_cd_units_choice),
-    checkboxInput('zeroFinalSpectrum',
-    'Subtract the average signal of the highest 
-    10 nm wavelength interval from the final CD spectrum?',
-    FALSE),
-    
-    footer=tagList(
-      actionButton('submitUnits', 'Submit'),
-      modalButton('Cancel')
-    )
-  ))
+    showModal(modalDialog(
+
+        tags$h3('Please enter the units of the CD data files,
+            the desired units of the final processed spectrum,
+            and if the final spectrum should be zeroed:'),
+        selectInput("inputUnitsAutomatic"  , 'CD input files unit',
+            global_cd_units_choice_short),
+        selectInput("workingUnitsAutomatic", 'Desired units of the final spectrum',
+            global_cd_units_choice),
+        checkboxInput('zeroFinalSpectrum',
+            'Subtract the average signal of the highest
+            10 nm wavelength interval from the final CD spectrum?',
+            FALSE),
+
+        footer=tagList(
+            actionButton('submitUnits', 'Submit'),
+            modalButton('Cancel')
+        )
+
+    ))
   
 })
 
@@ -294,14 +135,14 @@ observeEvent(input$automaticProcess,{
 observeEvent(input$submitUnits, {
   
   removeModal()
-  
+
   c1 <- grepl('molar'  , input$workingUnitsAutomatic, ignore.case = TRUE)
   c2 <- grepl('unit'   , input$workingUnitsAutomatic, ignore.case = TRUE)
-  
+
   if (c1 & c2) {
-    
+
     showModal(modalDialog(
-      
+
       tags$h3('Please enter the following experimental details:'),
       numericInput('pathLength'   , 'Path length (mm)',     1,min = 0,max = 100,step = 1),
       numericInput('molWeight'    , 'Molecular weight (Da)',1,min = 0,max = 1e6,step = 1),
@@ -312,11 +153,11 @@ observeEvent(input$submitUnits, {
         modalButton('Cancel')
       )
     ))
-    
+
   } else if (c1 & !c2) {
-    
+
     showModal(modalDialog(
-      
+
       tags$h3('Please enter the following experimental details:'),
       numericInput('pathLength'   , 'Path length (mm)',     1,min = 0,max = 100,step = 1),
       numericInput('molWeight'    , 'Molecular weight (Da)',1,min = 0,max = 1e6,step = 1),
@@ -326,21 +167,21 @@ observeEvent(input$submitUnits, {
         modalButton('Cancel')
       )
     ))
-    
+
   } else {
-    
+
     selectedIDx <- which(global_cd_units_choice == input$workingUnitsAutomatic)
-    
+
     showModal(modalDialog(
-      
+
       tags$h3(paste('Selected units for the final spectrum are: ' ,names(global_cd_units_choice)[selectedIDx])),
       footer=tagList(
         actionButton('submitExperimentalDetails', 'Okay'),
         modalButton('Cancel')
       )
-    ))    
-    
-  } 
+    ))
+
+  }
   
 })
 
@@ -1920,7 +1761,7 @@ observeEvent(input$submitUnits2,{
 
         if (input$trackPreviousChange) {
 
-            # Include the original CD curves of the right selected spectrum
+          # Include the original CD curves of the right selected spectrum
           previous_exp2_metadata <- cdAnalyzer$experimentsOri[[last(names(ids))]]$metadata
 
           for (md in previous_exp2_metadata) {
@@ -1932,7 +1773,18 @@ observeEvent(input$submitUnits2,{
                                                           previous_exp2_metadata[['Original CD curve(s)']],
                                                           ')')
               break
+            }
 
+            for (operationPrev in c('Smooth','Zero','Scale')) {
+
+              if (grepl(paste0(operationPrev,' operation'),md)) {
+
+                metadata_list[[second_curve_key]] <- paste0(metadata_list[[second_curve_key]],
+                                                            ' (',operationPrev,' of: ',
+                                                            previous_exp2_metadata[['Original CD curve(s)']],
+                                                            ')')
+                break
+              }
             }
           }
         }
@@ -1967,14 +1819,24 @@ observeEvent(input$submitUnits2,{
                                                             previous_exp_metadata[['Original CD curve(s)']],
                                                             ')')
             break
+          }
 
+          for (operationPrev in c('Smooth','Zero','Scale')) {
+
+            if (grepl(paste0(operationPrev,' operation'),md)) {
+
+            metadata_list[['Original CD curve(s)']] <- paste0(metadata_list[['Original CD curve(s)']],
+                                                              '. Origin: ',operationPrev,' of: ',
+                                                              previous_exp_metadata[['Original CD curve(s)']]
+                                                              )
+              break
+            }
           }
 
         }
-
       }
 
-      # Include the right-selected spectrum metadata for the smooth and zero operations
+      # Include the right-selected spectrum metadata for the smooth zero and scale operations
       if (operation %in% c('Smooth','Zero','Scale') && input$trackPreviousChange) {
 
         for (md in previous_exp_metadata) {
@@ -1998,18 +1860,6 @@ observeEvent(input$submitUnits2,{
 
           }
 
-          if (md %in% c("Generated by applying the Smooth operation",
-                         "Generated by applying the Zero operation",
-                         "Generated by applying the Scale operation")) {
-
-            operationPrev     <- strsplit(md,' ')[[1]][5]
-
-            metadata_list[['Original CD curve(s)']] <- paste0(metadata_list[['Original CD curve(s)']],
-                                                              '. Origin: ',operationPrev,' of: ',
-                                                              previous_exp_metadata[['Original CD curve(s)']]
-                                                              )
-
-          }
         }
       }
 
@@ -2043,7 +1893,7 @@ observeEvent(input$submitUnits2,{
   } else {
     
     # Assign the same value as the experiments used to generate the new CD curves
-    if (operation %in% c('Smooth','Subtract','Sum','Zero')) {
+    if (operation %in% c('Smooth','Subtract','Sum','Zero','Scale')) {
       
       i <- 0
       for (expNew in newExperimentNames) {
@@ -2066,8 +1916,6 @@ observeEvent(input$submitUnits2,{
     # Modify the input parameters Table
     updateCDFilesInfoTable()
   }
-
-
 
   # 6th step - convert back to the appropriate units
   rList2        <- as.list(rep(input$workingUnits,length(unique(names(ids)))+length(newExperimentNames)))

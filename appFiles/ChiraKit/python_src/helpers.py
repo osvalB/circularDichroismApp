@@ -1,5 +1,6 @@
 
 import numpy  as np
+import pandas as pd
 import re
 
 temperature_to_kelvin = lambda T: T + 273.15 if np.max(T) < 270 else T
@@ -296,7 +297,60 @@ def check_good_parameters_estimation(params,low_bound,high_bound,params_name):
 
     return all(lie_in_correct_interval)
 
-def calculate_epsilon(sequence,disulfide_bonds=0):
+def count_neg_charged_residues(sequence):
+
+    return sequence.count('D') + sequence.count('E')
+
+def count_pos_charged_residues(sequence):
+
+    return sequence.count('K') + sequence.count('R')
+
+def aa_sequence_to_weight(sequence,monoisotopic=False):
+
+    # https://proteomicsresource.washington.edu/protocols06/masses.php
+    if not monoisotopic:
+
+        amino_acid_weights = {
+            "A": 71.0779, "R": 156.18568, "N": 114.10264, "D": 115.0874, "C": 103.1429,
+            "Q": 128.12922, "E": 129.11398, "G": 57.05132, "H": 137.13928, "I": 113.15764,
+            "L": 113.15764, "K": 128.17228, "M": 131.19606, "F": 147.17386, "P": 97.11518,
+            "S": 87.0773, "T": 101.10388, "W": 186.2099, "Y": 163.17326, "V": 99.13106,
+            "U": 150.3079,"O":237.29816
+        }
+
+    else:
+
+        amino_acid_weights = {
+            "A": 71.037113805, "R": 156.101111050, "N": 114.042927470, "D": 115.026943065, "C": 103.009184505,
+            "Q": 128.058577540, "E": 129.042593135, "G": 57.021463735, "H": 137.058911875, "I": 113.084064015,
+            "L": 113.084064015, "K": 128.094963050, "M": 131.040484645	, "F": 147.068413945, "P": 97.052763875,
+            "S": 87.032028435, "T": 101.047678505, "W": 186.079312980, "Y": 163.063328575, "V": 99.068413945,
+            "U": 150.953633405,"O":237.147726925
+        }
+
+    weight = 0.0
+    for aa in sequence:
+        if aa in amino_acid_weights:
+            weight += amino_acid_weights[aa]
+        else:
+            continue
+
+    # Add the N-terminus (H) and C-terminus (OH) groups to calculate the neutral mass of the peptide/protein.
+    if monoisotopic:
+        oxygen_mass = 15.99491463
+        hydrogen_mass = 1.007825
+    else:
+        oxygen_mass   = 15.9994
+        hydrogen_mass = 1.00794
+
+    weight += oxygen_mass + 2 * hydrogen_mass
+
+    # Round to the first digit
+    weight = np.round(weight,1)
+
+    return weight
+
+def calculate_epsilon(sequence):
     """
     Given a protein sequence with natural aminoacids
     compute the molar extinction coefficient at 205 nm, 214 nm and 280 nm
@@ -324,10 +378,8 @@ def calculate_epsilon(sequence,disulfide_bonds=0):
     n_W = sequence.count('W')
     n_Y = sequence.count('Y')
 
-    # Method 280 nm
-    epsilon_280 = 1490 * n_Y + 5500 * n_W + disulfide_bonds * 125
-
-    # Method 214 nm - https://pubs.acs.org/doi/epdf/10.1021/jf070337l?ref=article_openPDF
+    # Start with Method 214 nm - https://pubs.acs.org/doi/epdf/10.1021/jf070337l?ref=article_openPDF
+    # Does not depend on the number of disulfide bonds
 
     # Check if we have a proline at the N-terminus
     proline_N = sequence[0] == 'P'
@@ -346,12 +398,48 @@ def calculate_epsilon(sequence,disulfide_bonds=0):
             n_V * 43 + n_W * 29050 + n_Y * 5375 + (len(sequence)-1)*923
                    )
 
-    # Method 205 nm - https://pubmed.ncbi.nlm.nih.gov/23526461/
+    molecular_weight = aa_sequence_to_weight(sequence)
 
-    epsilon_205 = (
-        n_W * 20400 + n_F * 8600 + n_Y * 6080 + n_H * 5200 + n_M * 1830 +
-        n_R * 1350 + n_C * 690 + n_N * 400 + n_Q * 400 +
-        (len(sequence)-1) * 2780 + 820 * disulfide_bonds
-    )
+    # Compute 0.1 absorbance at 280 nm
+    abs01_214 = np.round(epsilon_214 / molecular_weight,2)
 
-    return epsilon_280, epsilon_214, epsilon_205
+    # Count how many possible disulfide bonds we have - number of cysteines divided by 2
+    disulfide_bonds = sequence.count('C') // 2
+
+    epsilon_280 = []
+    epsilon_205 = []
+
+    possible_disulfide_bonds = [x for x in range(disulfide_bonds+1)]
+
+    # Iterate over the number of disulfide bonds
+    for n_DB in possible_disulfide_bonds:
+
+        # Method 280 nm
+        epsilon_280.append(1490 * n_Y + 5500 * n_W + n_DB * 125)
+
+        # Method 205 nm - https://pubmed.ncbi.nlm.nih.gov/23526461/
+
+        epsilon_205.append(
+            n_W * 20400 + n_F * 8600 + n_Y * 6080 + n_H * 5200 + n_M * 1830 +
+            n_R * 1350 + n_C * 690 + n_N * 400 + n_Q * 400 +
+            (len(sequence)-1) * 2780 + 820 * n_DB
+        )
+
+    abs01_280 = [np.round(x / molecular_weight,2) for x in epsilon_280]
+    abs01_205 = [np.round(x / molecular_weight,2) for x in epsilon_205]
+
+    # Create a dataframe with four columns, epsilon 280, epsilon 214, epsilon 205 and number of disulfide bonds
+    df1 = pd.DataFrame({
+        'Epsilon_280nm [1/(M*cm)]': epsilon_280,
+        'Epsilon_214nm [1/(M*cm)]': epsilon_214,
+        'Epsilon_205nm [1/(M*cm)]': epsilon_205,
+        '#Disulfide bonds': possible_disulfide_bonds})
+
+    # Create a dataframe with four columns, epsilon 280, epsilon 214, epsilon 205 and number of disulfide bonds
+    df2 = pd.DataFrame({
+        'Abs(0.1%)_280nm (=1 g/l)': abs01_280,
+        'Abs(0.1%)_214nm (=1 g/l)': abs01_214,
+        'Abs(0.1%)_205nm (=1 g/l)': abs01_205,
+        '#Disulfide bonds': possible_disulfide_bonds})
+
+    return [df1, df2]

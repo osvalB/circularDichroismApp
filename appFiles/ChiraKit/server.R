@@ -29,6 +29,7 @@ function(input, output, session) {
   sescaPyClass <- CdSpectraPredictor()
 
   source(paste0(base_dir,"reactives/reactives_values.R"                 ), local = T)
+  source(paste0(base_dir,"reactives/reactives0.R"                        ), local = T)
   source(paste0(base_dir,"reactives/reactives.R"                        ), local = T)
   source(paste0(base_dir,"reactives/plot_reactives_load_input.R"        ), local = T)
   source(paste0(base_dir,"reactives/thermal_ramp_reactives.R"           ), local = T)
