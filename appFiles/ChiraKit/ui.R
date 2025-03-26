@@ -27,8 +27,6 @@ shinyUI(dashboardPage(
         menuSubItem("2e. Spectra comparison",            icon = icon("scale-balanced"), tabName = "menu_spectra_comparison"),
         menuSubItem("2f. Peptide helicity",              icon = icon("percent"),        tabName = "menu_peptide")
 
-        #menuSubItem("2g. G-Quadruplex structure",        icon = icon("dna"),            tabName = "menu_gQuadruplex")
-      
       ),
       
       menuItem("3. Export data",  icon = icon("file-export"),      tabName = "menu_export"),
@@ -395,72 +393,6 @@ shinyUI(dashboardPage(
           
         )),
 
-      tabItem(
-        tabName = "menu_gQuadruplex",
-        
-        column(6,
-               fluidRow(
-                 
-                 column(12,
-                        source("ui_files/2g_ui_gQuadruplex_references.R",local=T)$value,
-                        
-                        #Custom CSS to increase plot height
-                        tags$head(tags$style("
-                        #cdSpectraGQ{height:470px !important;}
-                        #pca_results_GQ{height:470px !important;}
-                        #pca_clustering_GQ{height:470px !important;}
-                        "
-                        )),
-                        
-                        # TabBox to plot the CD spectra and the associated voltage
-                        tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex1",
-                               tabPanel("Spectra - Ref",     plotlyOutput("cdSpectraGQ")),
-                               tabPanel("PCA - Ref",         plotOutput("pca_results_GQ")),
-                               tabPanel("Clusters - Ref",    plotOutput("pca_clustering_GQ")),
-                               tabPanel("Secondary params",  tableOutput("secondary_params_GQ")),
-                               tabPanel("Tertiary params",   tableOutput("tertiary_params_GQ"))
-                               
-                        ),
-                        
-                        source("ui_files/2g_ui_gQuadruplex_references_plot_settings.R",local=T)$value
-                        
-                        )
-               )),
-        
-        column(6,
-               fluidRow(
-                 
-                 column(12,
-                        source("ui_files/2g_ui_gQuadruplex_estimation.R",local=T)$value,
-                        
-                        #Custom CSS to increase plot height
-                        tags$head(tags$style("
-                        #cdSpectraGQ_samples{height:470px !important;}
-                        #pca_results_GQ_samples{height:470px !important;}
-                        #pca_results_GQ_combined{height:470px !important;}
-                        #pca_clustering_GQ_samples{height:470px !important;}
-                        #pca_clustering_GQ_combined{height:470px !important;}
-                        "
-                        )),
-                        
-                        # TabBox to plot the CD spectra and the associated voltage
-                        tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex2",
-                               tabPanel("Spectra - Samples",      plotlyOutput("cdSpectraGQ_samples")),
-                               tabPanel("PCA - Samples",          plotOutput("pca_results_GQ_samples")),
-                               tabPanel("Clusters - Samples",     plotOutput("pca_clustering_GQ_samples")),
-                               tabPanel("PCA - Ref+Samples",      plotOutput("pca_results_GQ_combined")),
-                               tabPanel("Clusters - Ref+Samples", plotOutput("pca_clustering_GQ_combined")),
-                               tabPanel("Secondary str.",         tableOutput("fitted_secondary_str_GQ")),
-                               tabPanel("Tertiary str.",          tableOutput("fitted_tertiary_str_GQ"))
-                               
-                               
-                        ),
-                        source("ui_files/2g_ui_gQuadruplex_samples_plot_settings.R",local=T)$value
-                        )
-               ))
-                
-        ),      
-            
       tabItem(tabName = "menu_export",
               fluidRow(
                 

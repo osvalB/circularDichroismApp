@@ -1981,66 +1981,14 @@ observeEvent(input$maxHTvalue,{
   
   req(reactives$data_loaded)
   req(is.numeric(input$maxHTvalue))
-  
-  allVoltageData <- cdAnalyzer$get_experiment_properties('signalHT')
-  allWLData      <- cdAnalyzer$get_experiment_properties('wavelength')
-  
-  # current values of the wavelength range slider
-  minWL <- input$wavelengthRange[1]
-  maxWL <- input$wavelengthRange[2]
-  
-  setNewWL <- FALSE
-  
-  minWL_news <- c()
-  maxWL_news <- c()
-  
-  for (i in length(allVoltageData)) {
-    voltage_temp <- allVoltageData[[i]]
-    
-    if (sum(!is.na(voltage_temp)) != 0 ) {
-      wlTemp    <- allWLData[[i]]
-      
-      # Find the maximum wavelength that has associated HT values
-      # under the HT threshold 
-      filteredA <- apply(voltage_temp, 2, function(x) {
-        sel <- which(x <= input$maxHTvalue)
-        return(ifelse(length(sel)>0,max(sel),NA))
-      })
-      
-      # Find the minimum wavelength that has associated HT values
-      # under the HT threshold 
-      filteredB <- apply(voltage_temp, 2, function(x) {
-        sel <- which(x <= input$maxHTvalue)
-        return(ifelse(length(sel)>0,min(sel),NA))
-      })
 
-      # Find the overall minimum and maximum wavelength for this CD experiment
-      # Append these values to minWL_news and maxWL_news
-      if (!all(is.na(filteredA)) & !all(is.na(filteredB))) {
-        setNewWL    <- TRUE
+  minWL <- cdAnalyzer$find_wavelength_limit(input$maxHTvalue)
 
-        minWL_new_i <- min(c(wlTemp[filteredA],wlTemp[filteredB]),na.rm = T)
-        maxWL_new_i <- max(c(wlTemp[filteredA],wlTemp[filteredB]),na.rm = T)
-        
-        minWL_news <- c(minWL_news,minWL_new_i)
-        maxWL_news <- c(maxWL_news,maxWL_new_i)
-        
-      }
-      
-    }
-    
+  if (minWL != 0) {
+
+    updateSliderInput(session,'wavelengthRange',NULL,value = c(minWL,input$wavelengthRange[2]))
+
   }
 
-  if (setNewWL) {
-    
-    # Set the new wavelength limits
-
-    minWL <- max(minWL_news)
-    maxWL <- min(maxWL_news)
-    
-    updateSliderInput(session,'wavelengthRange',NULL,value = c(minWL,maxWL))
-      
-  }
-  
 })
 

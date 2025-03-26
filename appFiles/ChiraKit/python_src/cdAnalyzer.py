@@ -2744,3 +2744,37 @@ class CdAnalyzer:
             self.experimentsModif[expName].wavelength = filter_vector_by_values(wl, min_wl, max_wl)
 
         return None
+
+    def find_wavelength_limit(self,threshold):
+
+        """
+        Given a certain HT threshold, find the wavelength range where the HT signal is below this threshold
+        """
+
+        min_wl_global = 0
+
+        for expName in self.experimentNames:
+
+            ht = self.experimentsOri[expName].signalHT
+
+            # Check that HT is not only NAs
+            if not np.isnan(ht).all():
+
+                wl = self.experimentsOri[expName].wavelength
+
+                # iterate over the ht columns
+                for i in range(ht.shape[1]):
+
+                    ht_i = ht[:,i]
+
+                    # Subset the wavelengths where ht is below the threshold
+                    wl_subset = wl[ht_i <= threshold]
+
+                    # Find the minimum wavelength
+                    min_wl = np.min(wl_subset)
+
+                    # Update the global minimum wavelength, if the minimum wavelength is higher
+                    if min_wl > min_wl_global:
+                        min_wl_global = min_wl
+
+        return min_wl_global
