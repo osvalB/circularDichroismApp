@@ -9,7 +9,8 @@ py_scripts <- c("cdAnalyzer.py","helpers.py","decomposition_helpers.py",
 for (script in py_scripts) {source_python(paste0('python_src/', script))}
 
 # List of R script files to source
-r_scripts <- c("helpers.R","helpers_unfolding.R","helpers_plotting.R","plotFunctions.R","plotFunctionsSpectraComparison.R")
+r_scripts <- c("helpers.R","helpers_unfolding.R","helpers_plotting.R",
+                "plotFunctions.R","plotFunctionsSpectraComparison.R","helpers_G-Quadruplex.R")
 
 # Source the R helper functions 
 for (script in r_scripts) {source(paste0('server_files/', script))}
@@ -18,29 +19,34 @@ for (script in r_scripts) {source(paste0('server_files/', script))}
 
 function(input, output, session) {
 
-  # To handle the general processing, the unfolding models, 
-  # the secondary structure calculation, and the custom models
-  cdAnalyzer                <- CdAnalyzer()
-  
-  # To handle the spectra comparison module
-  compareSpectraPyClass     <- CdExperimentComparison()
+    # To handle the general processing, the unfolding models,
+    # the secondary structure calculation, and the custom models
+    cdAnalyzer                <- CdAnalyzer()
 
-  # To handle the SESCA module
-  sescaPyClass <- CdSpectraPredictor()
+    # To handle the spectra comparison module
+    compareSpectraPyClass     <- CdExperimentComparison()
 
-  source(paste0(base_dir,"reactives/reactives_values.R"                 ), local = T)
-  source(paste0(base_dir,"reactives/reactives0.R"                        ), local = T)
-  source(paste0(base_dir,"reactives/reactives.R"                        ), local = T)
-  source(paste0(base_dir,"reactives/plot_reactives_load_input.R"        ), local = T)
-  source(paste0(base_dir,"reactives/thermal_ramp_reactives.R"           ), local = T)
-  source(paste0(base_dir,"reactives/chemical_denaturation_reactives.R"  ), local = T)
-  source(paste0(base_dir,"reactives/secondary_structure_reactives.R"    ), local = T)
-  source(paste0(base_dir,"reactives/custom_analysis_reactives.R"        ), local = T)
-  source(paste0(base_dir,"reactives/spectra_comparison_reactives.R"     ), local = T)
-  source(paste0(base_dir,"reactives/peptide_helix_content_reactives.R"  ), local = T)
-  source(paste0(base_dir,"reactives/sesca_reactives.R"                  ), local = T)
-  source(paste0(base_dir,"reactives/download_reactives.R"               ), local = T)
-  source(paste0(base_dir,"reactives/epsilon_calculator_reactives.R"     ), local = T)
+    # To handle the SESCA module
+    sescaPyClass <- CdSpectraPredictor()
+
+    # To handle the G-Quadruplex module
+    gQuadRefPyClass     <- CdExperimentGeneral()
+    gQuadSamplePyClass  <- CdExperimentGeneral()
+
+    source(paste0(base_dir,"reactives/reactives_values.R"                 ), local = T)
+    source(paste0(base_dir,"reactives/reactives0.R"                        ), local = T)
+    source(paste0(base_dir,"reactives/reactives.R"                        ), local = T)
+    source(paste0(base_dir,"reactives/plot_reactives_load_input.R"        ), local = T)
+    source(paste0(base_dir,"reactives/thermal_ramp_reactives.R"           ), local = T)
+    source(paste0(base_dir,"reactives/chemical_denaturation_reactives.R"  ), local = T)
+    source(paste0(base_dir,"reactives/secondary_structure_reactives.R"    ), local = T)
+    source(paste0(base_dir,"reactives/custom_analysis_reactives.R"        ), local = T)
+    source(paste0(base_dir,"reactives/spectra_comparison_reactives.R"     ), local = T)
+    source(paste0(base_dir,"reactives/peptide_helix_content_reactives.R"  ), local = T)
+    source(paste0(base_dir,"reactives/sesca_reactives.R"                  ), local = T)
+    source(paste0(base_dir,"reactives/gQuadruplex_reactives.R"            ), local = T)
+    source(paste0(base_dir,"reactives/download_reactives.R"               ), local = T)
+    source(paste0(base_dir,"reactives/epsilon_calculator_reactives.R"     ), local = T)
 
 }
 
