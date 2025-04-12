@@ -49,16 +49,16 @@ box(title = "Samples dataset - Plot settings", width = 12, solidHeader = T, stat
       fluidRow(
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_samples_png", "Export PCA samples to PNG" ))),
+                    downloadButton("download_samples_png", "PCA samples plot (.png)" ))),
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_samples_pdf", "Export PCA samples to PDF" ))),
+                    downloadButton("download_samples_pdf", "PCA samples plot (.pdf)" ))),
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_combined_png", "Export PCA combined to PNG" ))),
+                    downloadButton("download_combined_png", "PCA combined plot (.png)" ))),
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_combined_pdf", "Export PCA samples to PDF" )))
+                    downloadButton("download_combined_pdf", "PCA combined plot (.pdf)" )))
       )
       
     ),
@@ -77,16 +77,16 @@ box(title = "Samples dataset - Plot settings", width = 12, solidHeader = T, stat
       fluidRow(
       
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_cluster_png_samples", "Clustering (Samples) to PNG"))),
+                    downloadButton("download_cluster_png_samples", "Samples clustering (.png)"))),
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_cluster_pdf_samples", "Clustering (Samples) to PDF"))),
+                    downloadButton("download_cluster_pdf_samples", "Samples clustering (.pdf)"))),
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_cluster_png_combined", "Clustering (Combined) to PNG"))),
+                    downloadButton("download_cluster_png_combined", "Combined clustering (.png)"))),
         
         column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-                    downloadButton("download_cluster_pdf_combined", "Clustering (Combined) to PDF")))
+                    downloadButton("download_cluster_pdf_combined", "Combined clustering (.pdf)")))
       )
       
     )

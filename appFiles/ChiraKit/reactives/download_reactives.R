@@ -787,3 +787,22 @@ output$download_cluster_pdf_combined        <-   downloadHandler(
   content  = function(file) {
     ggsave( file, plot = cluster_plot_combined() ,width = 10,height = 10)
   })
+
+output$download_reference_csv <-   downloadHandler(
+  filename = function() {paste0("CD_G-Quadruplex_references_spectra",".csv")},
+  content  = function(file) {
+    # return the file stored in './www/default_spectra_GQuadruplex.csv'
+    file.copy('./www/default_spectra_GQuadruplex.csv',file)
+  })
+
+output$download_reference_sec_csv <-   downloadHandler(
+  filename = function() {paste0("CD_G-Quadruplex_references_sec_str",".csv")},
+  content  = function(file) {
+    file.copy('./www/default_secondary_parameters.csv',file)
+  })
+
+output$download_reference_ter_csv <-   downloadHandler(
+  filename = function() {paste0("CD_G-Quadruplex_references_ter_str",".csv")},
+  content  = function(file) {
+    file.copy('./www/default_tertiary_parameters.csv',file)
+  })

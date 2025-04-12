@@ -189,7 +189,7 @@ observeEvent(input$launchSamplesPCAGquad,{
   } 
   
   relevantSpectra <- unlist(cdAnalyzer$get_experiment_properties('internalID')[sel_exps_ids])
-  
+
   merged  <- get_signal_dfs_from_selected_spectra(relevantSpectra,cdAnalyzer)
   signal  <- as.matrix(merged[,-1],drop = FALSE)
   
@@ -203,7 +203,13 @@ observeEvent(input$launchSamplesPCAGquad,{
   
   gQuadSamplePyClass$signalInput <- filter_matrix_by_vector(gQuadSamplePyClass$signalInput,gQuadSamplePyClass$wavelength,minWL,maxWL)
   gQuadSamplePyClass$wavelength  <- filter_vector_by_values(gQuadSamplePyClass$wavelength,minWL,maxWL)
-  
+
+  # Remove the experiment name if we only have one experiment
+  nExps <- length(exps)
+  if (nExps == 1) {
+    relevantSpectra <- gsub(relevantSpectra,pattern = exps[1],replacement = "")
+  }
+
   gQuadSamplePyClass$spectraNames <- relevantSpectra
 
   output$cdSpectraGQ_samples <- renderPlotly({
