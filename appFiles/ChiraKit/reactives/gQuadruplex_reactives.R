@@ -204,9 +204,10 @@ observeEvent(input$launchSamplesPCAGquad,{
   gQuadSamplePyClass$signalInput <- filter_matrix_by_vector(gQuadSamplePyClass$signalInput,gQuadSamplePyClass$wavelength,minWL,maxWL)
   gQuadSamplePyClass$wavelength  <- filter_vector_by_values(gQuadSamplePyClass$wavelength,minWL,maxWL)
 
-  # Remove the experiment name if we only have one experiment
-  nExps <- length(exps)
-  if (nExps == 1) {
+  # Remove the experiment name if we only have one experiment, and more than one curve
+  nCurves <- length(relevantSpectra)
+  nExps   <- length(exps)
+  if (nExps == 1 && nCurves > 1) {
     relevantSpectra <- gsub(relevantSpectra,pattern = exps[1],replacement = "")
   }
 
