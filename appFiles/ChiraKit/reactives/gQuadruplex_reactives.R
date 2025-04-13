@@ -242,7 +242,12 @@ samples_pca_plot <- reactive({
   signal <- base::t(gQuadSamplePyClass$signalInput)
   wl     <- gQuadSamplePyClass$wavelength
   names  <- gQuadSamplePyClass$spectraNames
-  
+
+  # Return null if we only have one spectrum
+  if (length(names) == 1) {
+      return(NULL)
+  }
+
   pca_num_clusters <- pca_num_clusters_samples()
   
   samples_pca_plot <- plot_pca_analysis(
@@ -317,7 +322,12 @@ cluster_plot_samples <- reactive({
   req(reactives$GQ_sample_load)
   signal <- base::t(gQuadSamplePyClass$signalInput)
   names  <- gQuadSamplePyClass$spectraNames
-  
+
+  # Return null if we only have one spectrum
+  if (length(names) == 1) {
+      return(NULL)
+  }
+
   pca_num_clusters <- pca_num_clusters_samples()
   
   cluster_plot_samples <- plot_cluster_analysis( signal,names,cluster_num_clusters = pca_num_clusters,
@@ -401,7 +411,7 @@ observeEvent(input$launchSVD_GQ,{
   
   cd_sample     <- base::t(gQuadSamplePyClass$signalInput)
   names_sample  <- gQuadSamplePyClass$spectraNames
-  
+
   est_results_all     <- list()
   est_results_all_ter <- list()
   
