@@ -29,6 +29,9 @@ renderInputData <- function() {
     output$legendInfo     <- helperRenderRHandsontable(legendDf)
     updateSESCA_ref(legendDf)
 
+    updateSelectInput(session,"sampleSelectGquad_svd",NULL,choices = c('None',legendDf$Internal.ID))
+    updateSelectInput(session,"sampleSelectGquad_pca",NULL,choices = c('None',legendDf$Internal.ID))
+
     Sys.sleep(length(wls)*0.015)
   
 }

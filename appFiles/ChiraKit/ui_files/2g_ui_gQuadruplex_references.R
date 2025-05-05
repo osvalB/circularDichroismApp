@@ -68,5 +68,17 @@ box(title = "1. Reference dataset", width = 12, solidHeader = T, status = "prima
                 downloadButton("download_reference_ter_csv", "Download"))
             )
         )
+    ),
+
+    fluidRow(
+
+        # Button to proceed to sample PCA (green button with arrow)
+        column(3, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
+            actionButton(
+            inputId = "go_to_sample_pca_ui",label = "1c. Proceed to sample PCA",
+            icon("arrow-right"),
+            style="color: #fff; background-color: #337ab7;
+            border-color: #2e6da4")))
+
     )
 )

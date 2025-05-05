@@ -1,3 +1,31 @@
+observeEvent(input$go_to_sample_pca_ui,{
+
+    reactives$reference_ui_selected  <- FALSE
+    reactives$sample_ui_selected_pca <- TRUE
+
+})
+
+observeEvent(input$go_to_references_ui,{
+
+    reactives$reference_ui_selected  <- TRUE
+    reactives$sample_ui_selected_pca <- FALSE
+
+})
+
+observeEvent(input$go_to_sample_svd_ui,{
+
+    reactives$sample_ui_selected_pca  <- FALSE
+    reactives$sample_ui_selected_svd  <- TRUE
+
+})
+
+observeEvent(input$go_to_samples_pca,{
+
+    reactives$sample_ui_selected_pca  <- TRUE
+    reactives$sample_ui_selected_svd  <- FALSE
+
+})
+
 observeEvent(input$launchReferenceGquad,{
   
   reactives$GQ_ref_load <- FALSE
@@ -138,80 +166,82 @@ output$pca_clustering_GQ <- renderPlot({
   
 })
 
-observeEvent(input$launchSamplesPCAGquad,{
-  
+fill_gQuadSamplePyClass <- function(selected_spectrum_internal_id) {
+
+  sampleSelectGquad_pca <- selected_spectrum_internal_id
+
+  if (sampleSelectGquad_pca == 'None') return(NULL)
+
   if (!reactives$GQ_ref_load) {
     shinyalert(text = "Please load the references first.",
                type = "warning",closeOnEsc = T,closeOnClickOutside = T,
                html=T)
     return(NULL)
   }
-  
-  reactives$GQ_sample_load <- FALSE
 
-  exps <- cdAnalyzer$experimentNames
-  
-  if(length(exps)==0){
-    shinyalert(text = "Please import sample data using the module '1.Import data'",
-               type = "warning",closeOnEsc = T,closeOnClickOutside = T,
-               html=T)
-    return(NULL)
-  } 
-  
-  if(input$workingUnits != 'molarExtinction'){
-    shinyalert(
-      text = "Please choose 'Molar extinction' as the working units (Module '1.Import data')",
-      type = "warning",closeOnEsc = T,closeOnClickOutside = T,html=T)
-    return(NULL)
-  } 
-  
-  signals <- cdAnalyzer$get_experiment_properties_modif('signalDesiredUnit')  # In molar extinction units!
-  
-  # Find which experiments have data
-  sel_exps_ids <- c()
-  
-  counter <- 1
-  for (s in signals) {
-    nas <- sum(is.na(s))
-    if (nas == 0) {
-      sel_exps_ids <- c(sel_exps_ids,counter)
+  internal_ids <- cdAnalyzer$get_experiment_properties('internalID')
+  exps         <- cdAnalyzer$experimentNames
+
+  for (i in 1:length(internal_ids)) {
+
+    internal_ids_i <- internal_ids[[i]]
+
+    if (sampleSelectGquad_pca %in% internal_ids_i) {
+
+      sel_exp <- exps[i]
+      sel_id  <- which(internal_ids_i == sampleSelectGquad_pca)
+
     }
-    counter <- counter + 1
+
   }
-  
-  if(length(sel_exps_ids)==0){
+
+  workingUnits <- input$workingUnits
+
+  cdAnalyzer$experimentsModif[[sel_exp]]$experiment_from_abs_to_other_units('molarExtinction')
+  signal <- as.matrix(cdAnalyzer$experimentsModif[[sel_exp]]$signalDesiredUnit[,sel_id],drop = F)
+  cdAnalyzer$experimentsModif[[sel_exp]]$experiment_from_abs_to_other_units(workingUnits)
+
+# Check that the signal is not fill of NAs
+  if (sum(is.na(signal)) == length(signal)) {
     shinyalert(
-    text = "No data available in 'Molar extinction' units. 
-    Please import data and revise the Table '2. Parameters for molar ellipticity / extinction'. 
-    For example, set the input units to 'Molar extinction'",
+    text = "The selected sample has no data in the Molar Extinction units.
+    Please revise the Table '2. Parameters for molar ellipticity / extinction'.",
     type = "warning",closeOnEsc = T,closeOnClickOutside = T,html=T)
     return(NULL)
-  } 
-  
-  relevantSpectra <- unlist(cdAnalyzer$get_experiment_properties('internalID')[sel_exps_ids])
+  }
 
-  merged  <- get_signal_dfs_from_selected_spectra(relevantSpectra,cdAnalyzer)
-  signal  <- as.matrix(merged[,-1],drop = FALSE)
-  
-  gQuadSamplePyClass$wavelength   <- np_array(merged[,1])
+  # Try to convert the experiment to Molar extinction units
+
+  reactives$GQ_sample_load <- FALSE
+
+  gQuadSamplePyClass$wavelength   <- np_array(cdAnalyzer$experimentsModif[[sel_exp]]$wavelength)
   gQuadSamplePyClass$signalInput  <- np_array(signal)
   gQuadSamplePyClass$name         <- ''
-  
+
   # Filter according to the reference wavelength range
   minWL <- min(gQuadRefPyClass$wavelength)
   maxWL <- max(gQuadRefPyClass$wavelength)
-  
+
   gQuadSamplePyClass$signalInput <- filter_matrix_by_vector(gQuadSamplePyClass$signalInput,gQuadSamplePyClass$wavelength,minWL,maxWL)
   gQuadSamplePyClass$wavelength  <- filter_vector_by_values(gQuadSamplePyClass$wavelength,minWL,maxWL)
 
-  # Remove the experiment name if we only have one experiment, and more than one curve
+  # Remove the experiment name if we have more than one curve for that experiment
+  relevantSpectra <- cdAnalyzer$experimentsModif[[sel_exp]]$spectraNames
   nCurves <- length(relevantSpectra)
-  nExps   <- length(exps)
-  if (nExps == 1 && nCurves > 1) {
-    relevantSpectra <- gsub(relevantSpectra,pattern = exps[1],replacement = "")
-  }
+  if (nCurves > 1) sampleSelectGquad_pca <- gsub(sampleSelectGquad_pca,pattern = sel_exp,replacement = "")
 
-  gQuadSamplePyClass$spectraNames <- relevantSpectra
+  gQuadSamplePyClass$spectraNames <- c(sampleSelectGquad_pca)
+
+  reactives$GQ_sample_load <- TRUE
+
+  return(TRUE)
+}
+
+observeEvent(input$sampleSelectGquad_pca,{
+
+  we_have_sample_data <- fill_gQuadSamplePyClass(input$sampleSelectGquad_pca)
+
+  req(we_have_sample_data)
 
   output$cdSpectraGQ_samples <- renderPlotly({
     
@@ -221,8 +251,6 @@ observeEvent(input$launchSamplesPCAGquad,{
       gQuadSamplePyClass$spectraNames)
     
   })
-
-  reactives$GQ_sample_load <- TRUE
 
 })
 
@@ -378,10 +406,12 @@ output$pca_clustering_GQ_combined <- renderPlot({
   
 })
 
-observeEvent(input$launchSVD_GQ,{
-  
-  req(reactives$GQ_sample_load)
-  
+observeEvent(input$sampleSelectGquad_svd,{
+
+  we_have_sample_data <- fill_gQuadSamplePyClass(input$sampleSelectGquad_svd)
+
+  req(we_have_sample_data)
+
   cd_reference           <- base::t(gQuadRefPyClass$signalInput)
   rownames(cd_reference) <- gQuadRefPyClass$spectraNames
   colnames(cd_reference) <- gQuadRefPyClass$wavelength

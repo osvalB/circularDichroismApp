@@ -28,7 +28,6 @@ shinyUI(dashboardPage(
         menuSubItem("2f. Peptide helicity",              icon = icon("percent"),        tabName = "menu_peptide"),
         menuSubItem("2g. G-Quadruplex structure",        icon = icon("dna"),            tabName = "menu_gQuadruplex")
 
-
       ),
       
       menuItem("3. Export data",  icon = icon("file-export"),      tabName = "menu_export"),
@@ -400,68 +399,94 @@ shinyUI(dashboardPage(
 
         fluidRow(
 
-            column(6,
-               fluidRow(
+            conditionalPanel('output.reference_ui_selected',
 
-                 column(12,
-                        source("ui_files/2g_ui_gQuadruplex_references.R",local=T)$value,
+                column(12,
+                    source("ui_files/2g_ui_gQuadruplex_references.R",local=T)$value,
 
-                        #Custom CSS to increase plot height
-                        tags$head(tags$style("
-                        #cdSpectraGQ{height:550px !important;}
-                        #pca_results_GQ{height:550px !important;}
-                        #pca_clustering_GQ{height:550px !important;}
-                        "
-                        )),
+                    #Custom CSS to increase plot height
+                    tags$head(tags$style("
+                    #cdSpectraGQ{height:550px !important;}
+                    #pca_results_GQ{height:550px !important;}
+                    #pca_clustering_GQ{height:550px !important;}
+                    ")),
 
-                        # TabBox to plot the CD spectra and the associated voltage
-                        tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex1",
-                               tabPanel("Spectra - Ref",     plotlyOutput("cdSpectraGQ")),
-                               tabPanel("PCA - Ref",         plotOutput("pca_results_GQ")),
-                               tabPanel("Clusters - Ref",    plotOutput("pca_clustering_GQ")),
-                               tabPanel("Secondary params",  DT::dataTableOutput("secondary_params_GQ"),style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
-                               tabPanel("Tertiary params",   DT::dataTableOutput("tertiary_params_GQ"),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
+                    # TabBox to plot the CD spectra and the associated voltage
+                    tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex1",
+                           tabPanel("Spectra - Ref",     plotlyOutput("cdSpectraGQ")),
+                           tabPanel("PCA - Ref",         plotOutput("pca_results_GQ")),
+                           tabPanel("Clusters - Ref",    plotOutput("pca_clustering_GQ")),
+                           tabPanel("Secondary params",  DT::dataTableOutput("secondary_params_GQ"),style = "height:500px; overflow-y: scroll;overflow-x: scroll;"),
+                           tabPanel("Tertiary params",   DT::dataTableOutput("tertiary_params_GQ"),style = "height:500px; overflow-y: scroll;overflow-x: scroll;")
 
-                        ),
+                    ),
+                    source("ui_files/2g_ui_gQuadruplex_references_plot_settings.R",local=T)$value
+                )
 
-                        source("ui_files/2g_ui_gQuadruplex_references_plot_settings.R",local=T)$value
+            ),
 
-                        )
-               )),
+            conditionalPanel('output.sample_ui_selected_pca',
 
-            column(6,
-               fluidRow(
+                column(12,
+                    source("ui_files/2g_ui_gQuadruplex_pca.R",local=T)$value,
 
-                 column(12,
-                        source("ui_files/2g_ui_gQuadruplex_estimation.R",local=T)$value,
+                    #Custom CSS to increase plot height
+                    tags$head(tags$style("
+                    #cdSpectraGQ_samples{height:550px !important;}
+                    #pca_results_GQ_samples{height:550px !important;}
+                    #pca_results_GQ_combined{height:550px !important;}
+                    #pca_clustering_GQ_samples{height:550px !important;}
+                    #pca_clustering_GQ_combined{height:550px !important;}
+                    "
+                    )),
 
-                        #Custom CSS to increase plot height
-                        tags$head(tags$style("
-                        #cdSpectraGQ_samples{height:550px !important;}
-                        #pca_results_GQ_samples{height:550px !important;}
-                        #pca_results_GQ_combined{height:550px !important;}
-                        #pca_clustering_GQ_samples{height:550px !important;}
-                        #pca_clustering_GQ_combined{height:550px !important;}
-                        "
-                        )),
-
-                        # TabBox to plot the CD spectra and the associated voltage
-                        tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex2",
-                               tabPanel("Samples spectra",      plotlyOutput("cdSpectraGQ_samples")),
-                               tabPanel("Samples PCA",          plotOutput("pca_results_GQ_samples")),
-                               tabPanel("Samples clusters",     plotOutput("pca_clustering_GQ_samples")),
-                               tabPanel("Ref+Samples PCA",      plotOutput("pca_results_GQ_combined")),
-                               tabPanel("Ref+Samples clusters", plotOutput("pca_clustering_GQ_combined")),
-                               tabPanel("Secondary str.",       tableOutput("fitted_secondary_str_GQ")),
-                               tabPanel("Tertiary str.",        tableOutput("fitted_tertiary_str_GQ"))
+                    # TabBox to plot the CD spectra and the associated voltage
+                    tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex2",
+                           tabPanel("Sample spectrum",     plotlyOutput("cdSpectraGQ_samples")),
+                           #tabPanel("Samples PCA",          plotOutput("pca_results_GQ_samples")),
+                           #tabPanel("Samples clusters",     plotOutput("pca_clustering_GQ_samples")),
+                           tabPanel("Ref+Sample PCA",      plotOutput("pca_results_GQ_combined")),
+                           tabPanel("Ref+Sample clusters", plotOutput("pca_clustering_GQ_combined")),
+                           #tabPanel("Secondary str.",       tableOutput("fitted_secondary_str_GQ")),
+                           #tabPanel("Tertiary str.",        tableOutput("fitted_tertiary_str_GQ"))
 
 
-                        ),
-                        source("ui_files/2g_ui_gQuadruplex_samples_plot_settings.R",local=T)$value
-                        )
-               )
+                    )
+                )
+            ),
+
+            conditionalPanel('output.sample_ui_selected_svd',
+
+                column(12,
+                    source("ui_files/2g_ui_gQuadruplex_svd.R",local=T)$value,
+
+                    #Custom CSS to increase plot height
+                    tags$head(tags$style("
+                    #cdSpectraGQ_samples_fitted{height:550px !important;}
+                    "
+                    )),
+
+                    # TabBox to plot the CD spectra and the associated voltage
+                    tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex3",
+                           tabPanel("Fitted spectrum",       plotlyOutput("cdSpectraGQ_samples_fitted")),
+                           #tabPanel("Samples PCA",         plotOutput("pca_results_GQ_samples")),
+                           #tabPanel("Samples clusters",    plotOutput("pca_clustering_GQ_samples")),
+                           tabPanel("Secondary str.",       tableOutput("fitted_secondary_str_GQ")),
+                           tabPanel("Tertiary str.",        tableOutput("fitted_tertiary_str_GQ"))
+
+                    )
+                )
+            ),
+
+            conditionalPanel('!output.reference_ui_selected',
+
+                column(12,
+                    source("ui_files/2g_ui_gQuadruplex_samples_plot_settings.R",local=T)$value
+                )
+
             )
-        )),
+
+       )),
 
       tabItem(tabName = "menu_export",
               fluidRow(

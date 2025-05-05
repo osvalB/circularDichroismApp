@@ -2546,18 +2546,18 @@ class CdAnalyzer:
         Create 
         """
 
-        self.experimentsOri = {}  # Dictionary where each key value pair corresponds to one CD experiment
+        self.experimentsOri   = {}  # Dictionary where each key value pair corresponds to one CD experiment
         self.experimentsModif = {}  # To subset the wavelength range of the CD experiments inside experimentsOri
-        self.experimentNames = []
+        self.experimentNames  = []
         self.sharedParameters = False  # To modify all the experiment at the same time with shared parameters
 
-        self.experimentsThermal = {}  # Dictionary where each key value pair corresponds to one CD based thermal unfolding experiment
+        self.experimentsThermal     = {}  # Dictionary where each key value pair corresponds to one CD based thermal unfolding experiment
         self.experimentNamesThermal = []
 
-        self.experimentsChemical = {}  # Dictionary where each key value pair corresponds to one CD based chemical unfolding experiment
+        self.experimentsChemical     = {}  # Dictionary where each key value pair corresponds to one CD based chemical unfolding experiment
         self.experimentNamesChemical = []
 
-        self.experimentsCustom = {}  # Dictionary where each key value pair corresponds to one CD experiment with a custom formula for analysis
+        self.experimentsCustom     = {}  # Dictionary where each key value pair corresponds to one CD experiment with a custom formula for analysis
         self.experimentNamesCustom = []
 
     def load_experiment(self, file, name):
