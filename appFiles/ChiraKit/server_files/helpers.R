@@ -184,8 +184,7 @@ generateDTtable <- function(cdAnalyzer) {
     numberOfCroms       <- numberOfCroms[trueExperiments]
     iUnits              <- iUnits[trueExperiments]
     currentN            <- length(exps)
-    
-    
+
     inputUnits  <- sapply(1:currentN, function(i) {
       as.character(selectInput(paste0('inputUnits',i), label=NULL, 
                                choices = getChoices(iUnits[i]), selectize=FALSE))

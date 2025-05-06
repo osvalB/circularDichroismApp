@@ -1,13 +1,6 @@
 box(title = "2. PCA Clustering", width = 12, solidHeader = T, status = "primary",
     fluidRow(
 
-        #column(4, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-        #    actionButton(
-        #    inputId = "launchSamplesPCAGquad",label = "2a. Run PCA on samples",
-        #    icon("chart-line"),
-        #    style="color: #fff; background-color: #337ab7;
-        #    border-color: #2e6da4")))#,
-
         # Select input to select the sample of interest
         column(3, p(HTML("<b>Sample</b>"),
             span(shiny::icon("info-circle"), id = "info_uu-sampleSelectGquad_pca"),
@@ -16,15 +9,10 @@ box(title = "2. PCA Clustering", width = 12, solidHeader = T, status = "primary"
             selectize = FALSE, width = "100%"),
             tippy::tippy_this(
                 elementId = "info_uu-sampleSelectGquad_pca",
-                tooltip = "Choose working units as",
-                placement = "right")))#,
-
-        #column(4, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-        #    actionButton(
-        #    inputId = "launchSVD_GQ",label = "2b. Run SVD structure estimation",
-        #    icon("tornado"),
-        #    style="color: #fff; background-color: #337ab7;
-        #    border-color: #2e6da4")))
+                tooltip = "If no spectrum is available, import data in the 'Import data' section.
+                The selected spectrum will be used together with the reference spectra to
+                perform PCA clustering.",
+                placement = "right")))
     ),
 
     fluidRow(

@@ -85,7 +85,7 @@ from_pracma_lsqlincon <- function(C, d,                     # min ||C x - d||_2
 svd_spectra_analysis <- function( cd_reference, parameters, test_spectra, name, tertiary = FALSE ) {
   
   cd_reference = as.matrix( base::t( cd_reference ) ) #[r23,c121] -> [r121,]
-  parameters = as.matrix(  base::t( parameters ) )#[r23,c5] -> [r5,c23]
+  parameters   = as.matrix(  base::t( parameters ) )#[r23,c5] -> [r5,c23]
   test_spectra = as.matrix(  base::t( test_spectra ) ) #[r23,c121] -> [r121,c23]
   
   # Singular Value Decomposition Y=UDV'
@@ -178,17 +178,18 @@ svd_spectra_analysis <- function( cd_reference, parameters, test_spectra, name, 
   predicted_fractions_results =  100 * predicted_fractions_results
   
   svd_output <- NULL
-  svd_output$predicted <- predicted_fractions_results
-  svd_output$test_cd <- test_spectra
-  svd_output$fitted <- cd_fitted
-  svd_output$residual <- cd_residual
-  svd_output$RMSD <- cd_RMSD
-  svd_output$NRMSD <- cd_NRMSD
-  svd_output$summary <- complete_summary
-  svd_output$basis_spectra <- basis_spectra
+  svd_output$predicted        <- predicted_fractions_results
+  svd_output$test_cd          <- test_spectra
+  svd_output$fitted           <- cd_fitted
+  svd_output$residual         <- cd_residual
+  svd_output$RMSD             <- cd_RMSD
+  svd_output$NRMSD            <- cd_NRMSD
+  svd_output$summary          <- complete_summary
+  svd_output$basis_spectra    <- basis_spectra
   svd_output$basis_method_two <- basis_spectra_method_two
+
   if( tertiary == TRUE ) {
-    svd_output$tertiary_basis_spectra <- tertiary_basis_spectra
+    svd_output$tertiary_basis_spectra    <- tertiary_basis_spectra
     svd_output$tertiary_basis_method_two <- tertiary_basis_spectra_method_two
   }
   

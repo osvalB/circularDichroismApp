@@ -1258,9 +1258,9 @@ plot_heatmap_bayes_posterior <- function(df,i=1,j=2,plot_width=12,plot_height=12
 # 'wavelength'    : vector    (float),     length n
 # 'signal_matrix' : 2D matrix (float),     size n*m
 # 'sample_names'  : vector    (character), size m
-plot_gQuadruplexReferences <- function(wavelength,signal_matrix,sample_names,
-                                       axis_size=18,plot_type='png',
-                                       plot_width=12,plot_height=12) {
+plot_gQuadruplex <- function(wavelength,signal_matrix,sample_names,
+                             axis_size=18,plot_type='png',
+                             plot_width=12,plot_height=12) {
   
   fig          <- plot_ly()
   colorPalette <- getPalette(length(sample_names))
@@ -1291,10 +1291,57 @@ plot_gQuadruplexReferences <- function(wavelength,signal_matrix,sample_names,
   fig <- fig %>% layout(showlegend = TRUE,xaxis = x, yaxis = y,font="Roboto",
                         legend = list(font = list(size = axis_size-1)))
   
-  fig <- configFig(fig,paste0("CDspectra_G-Quadruplex_references_",strsplit(as.character(Sys.time())," ")[[1]][1]),
+  fig <- configFig(fig,paste0("CDspectra_G-Quadruplex_",strsplit(as.character(Sys.time())," ")[[1]][1]),
                    plot_type,plot_width,plot_height)
   return(fig)  
   
+}
+
+plot_gQuadruplex_fitting <- function(wavelength,signal_matrix,sample_names,
+                                     fitted_signal_matrix,
+                                     axis_size=18,plot_type='png',
+                                     plot_width=12,plot_height=12) {
+
+  fig          <- plot_ly()
+  colorPalette <- getPalette(length(sample_names))
+
+  for (i in 1:ncol(signal_matrix)) {
+
+    signal  <- signal_matrix[,i]
+
+    df      <- data.frame('wavelength'=wavelength,signal)
+
+    fig <- fig %>% add_trace(data=df,color=I(colorPalette[i]),x=~wavelength,y=~signal,
+                             type = 'scatter', mode = 'markers',
+                             marker = list(size=4),
+                             name = sample_names[i])
+
+    # Add fitted signal as a black line
+    fitted_signal <- fitted_signal_matrix[,i]
+    df_fit <- data.frame('wavelength'=wavelength,fitted_signal)
+    fig <- fig %>% add_trace(data=df_fit,x=~wavelength,y=~fitted_signal,
+                             type = 'scatter', mode = 'lines',
+                             line = list(color = "black",opacity = 0.6),
+                             showlegend = FALSE)
+
+  }
+
+  minWL <- min(wavelength) - 5
+  maxWL <- max(wavelength) + 5
+
+  x <- list(title = "Wavelength (nm)",titlefont = list(size = axis_size),
+            tickfont = list(size = axis_size),range = c(minWL, maxWL),showgrid = F)
+
+  y <- list(title = workingUnits2ProperLabel('molarExtinction'),
+            titlefont = list(size = axis_size), tickfont = list(size = axis_size),showgrid = F)
+
+  fig <- fig %>% layout(showlegend = TRUE,xaxis = x, yaxis = y,font="Roboto",
+                        legend = list(font = list(size = axis_size-1)))
+
+  fig <- configFig(fig,paste0("CDspectra_G-Quadruplex_",strsplit(as.character(Sys.time())," ")[[1]][1]),
+                   plot_type,plot_width,plot_height)
+  return(fig)
+
 }
 
 #---------------------------------------------------------------------------------------------------------------------------------------

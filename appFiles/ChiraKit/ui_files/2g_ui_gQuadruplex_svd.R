@@ -1,14 +1,5 @@
-box(title = "3. Secondary structure estimation", width = 12, solidHeader = T, status = "primary",
+box(title = "3. Structure estimation", width = 12, solidHeader = T, status = "primary",
     fluidRow(
-
-        #column(4, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-        #    actionButton(
-        #    inputId = "launchSamplesPCAGquad",label = "2a. Run PCA on samples",
-        #    icon("chart-line"),
-        #    style="color: #fff; background-color: #337ab7;
-        #    border-color: #2e6da4")))#,
-
-        # Select input to select the sample of interest, add tooltip
 
         column(3, p(HTML("<b>Sample</b>"),
             span(shiny::icon("info-circle"), id = "info_uu-sampleSelectGquad_svd"),
@@ -17,20 +8,9 @@ box(title = "3. Secondary structure estimation", width = 12, solidHeader = T, st
             selectize = FALSE, width = "100%"),
             tippy::tippy_this(
                 elementId = "info_uu-sampleSelectGquad_svd",
-                tooltip = "Select custom if you want to process the spectra manually.
-                Select 'Automatic baseline subtraction' if you want to load the CD scans of the sample,
-                the CD scans of the baseline  and process them automatically.
-                This includes 1)
-                averaging the scans, 2) subtracting the baseline, 3) zeroing the spectrum, and 4)
-                normalising the final spectrum (e.g., by converting it to molar ellipticity), if desired.
-                ",placement = "right")))#,
-
-        #column(4, p(HTML('<p style="margin-bottom:0px;"><br></p>'),
-        #    actionButton(
-        #    inputId = "launchSVD_GQ",label = "2b. Run SVD structure estimation",
-        #    icon("tornado"),
-        #    style="color: #fff; background-color: #337ab7;
-        #    border-color: #2e6da4")))
+                tooltip = "If no spectrum is available, import data in the 'Import data' section.
+                The reference spectra will be used to perform the SVD-based structure estimation on the selected 'Sample' spectrum.",
+                placement = "right")))
     ),
 
     fluidRow(

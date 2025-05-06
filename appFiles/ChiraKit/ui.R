@@ -443,12 +443,8 @@ shinyUI(dashboardPage(
                     # TabBox to plot the CD spectra and the associated voltage
                     tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex2",
                            tabPanel("Sample spectrum",     plotlyOutput("cdSpectraGQ_samples")),
-                           #tabPanel("Samples PCA",          plotOutput("pca_results_GQ_samples")),
-                           #tabPanel("Samples clusters",     plotOutput("pca_clustering_GQ_samples")),
                            tabPanel("Ref+Sample PCA",      plotOutput("pca_results_GQ_combined")),
                            tabPanel("Ref+Sample clusters", plotOutput("pca_clustering_GQ_combined")),
-                           #tabPanel("Secondary str.",       tableOutput("fitted_secondary_str_GQ")),
-                           #tabPanel("Tertiary str.",        tableOutput("fitted_tertiary_str_GQ"))
 
 
                     )
@@ -468,11 +464,10 @@ shinyUI(dashboardPage(
 
                     # TabBox to plot the CD spectra and the associated voltage
                     tabBox(title = "", width = 12,id = "tabBoxRefSpectraGQuadruplex3",
-                           tabPanel("Fitted spectrum",       plotlyOutput("cdSpectraGQ_samples_fitted")),
-                           #tabPanel("Samples PCA",         plotOutput("pca_results_GQ_samples")),
-                           #tabPanel("Samples clusters",    plotOutput("pca_clustering_GQ_samples")),
-                           tabPanel("Secondary str.",       tableOutput("fitted_secondary_str_GQ")),
-                           tabPanel("Tertiary str.",        tableOutput("fitted_tertiary_str_GQ"))
+                           tabPanel("Fitted spectrum (sec. str.)",  plotlyOutput("cdSpectraGQ_samples_fitted_sec")),
+                           tabPanel("Params (sec. str.)",           tableOutput("fitted_secondary_str_GQ")),
+                           tabPanel("Fitted spectrum (ter. str.)",  plotlyOutput("cdSpectraGQ_samples_fitted_ter")),
+                           tabPanel("Params (ter. str.)",           tableOutput("fitted_tertiary_str_GQ"))
 
                     )
                 )

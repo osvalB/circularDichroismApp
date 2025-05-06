@@ -50,7 +50,8 @@ reactives <- reactiveValues(
 
     reference_ui_selected                  = TRUE,  # to show the selected reference spectra
     sample_ui_selected_pca                 = FALSE,
-    sample_ui_selected_svd                 = FALSE
+    sample_ui_selected_svd                 = FALSE,
+    svd_choices                            = c(),   # which spectra to use for the SVD estimation in gQuadruplex_reactives
 )
 
 # Allow the UI to know the values of these reactives

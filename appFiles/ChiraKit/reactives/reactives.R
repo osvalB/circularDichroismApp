@@ -29,12 +29,16 @@ renderInputData <- function() {
     output$legendInfo     <- helperRenderRHandsontable(legendDf)
     updateSESCA_ref(legendDf)
 
-    updateSelectInput(session,"sampleSelectGquad_svd",NULL,choices = c('None',legendDf$Internal.ID))
-    updateSelectInput(session,"sampleSelectGquad_pca",NULL,choices = c('None',legendDf$Internal.ID))
+    internal_ids <- legendDf$Internal.ID[legendDf$Show]
+
+    updateSelectInput(session,"sampleSelectGquad_pca",NULL,choices = c('None',internal_ids))
+    updateSelectInput(session,"sampleSelectGquad_svd",NULL,choices = c('None','All',internal_ids))
 
     Sys.sleep(length(wls)*0.015)
   
 }
+
+
 
 observeEvent(input$cdFiles,{
   
@@ -931,7 +935,7 @@ observeEvent(input$sharedExperimentParameters,{
   if (input$sharedExperimentParameters) {
     
     df   <- data.frame('All experiments',1,1,1,
-                       as.character(selectInput('inputUnitsAll',label=NULL, choices = getChoices('Millidegrees'))),
+                       as.character(selectInput('inputUnitsAll',label=NULL, choices = getChoices('Millidegrees'), selectize=FALSE)),
                        1)
     
     colnames(df) <- c('File name',"Mol. weight (Dalton)","#Chromophore units","Conc. (mg/ml)",
@@ -986,7 +990,6 @@ observeEvent(input$legendInfo,{
 
   updateSelectInput(session,"mol2changeColor",NULL,
                     get_legend_from_rhandTable(input$legendInfo),input$mol2changeColor)
-  
 
 })
 
